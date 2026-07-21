@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: local_seo_os_app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - POLAR_ACCESS_TOKEN=${POLAR_ACCESS_TOKEN}
+      - SERP_API_KEY=${SERP_API_KEY}
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: local_seo_os_redis
+    ports:
+      - "6379:6379"
+    restart: always

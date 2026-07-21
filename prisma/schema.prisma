@@ -1,0 +1,404 @@
+// Prisma schema for Local SEO Operating System (Neon PostgreSQL compatible)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  CLIENT_VIEWER
+}
+
+enum AuditType {
+  GBP
+  WEBSITE
+  CITATION
+  REVIEW
+  RANKING
+  GRID_HEATMAP
+}
+
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum Impact {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum Status {
+  OPEN
+  IN_PROGRESS
+  DONE
+}
+
+enum CitationStatus {
+  CORRECT
+  INCORRECT
+  MISSING
+  DUPLICATE
+}
+
+model Organization {
+  id                 String              @id @default(uuid())
+  name               String
+  slug               String              @unique
+  logoUrl            String?
+  primaryColor       String?             @default("#0c8ce9")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  users              User[]
+  locations          Location[]
+  recommendations    Recommendation[]
+  apiKeys            ApiKey[]
+  webhooks           WebhookEndpoint[]
+  whiteLabelSettings WhiteLabelSettings?
+  notifications      NotificationItem[]
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  name           String
+  avatarUrl      String?
+  role           Role         @default(MEMBER)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+model Location {
+  id                  String               @id @default(uuid())
+  name                String
+  address             String
+  city                String
+  state               String
+  zip                 String
+  phone               String
+  website             String?
+  category            String
+  additionalCats      String?
+  placeId             String?
+  gbpConnected        Boolean              @default(false)
+  gbpHours            String?
+  gbpPhotoCount       Int                  @default(0)
+  gbpPostCount        Int                  @default(0)
+  gbpLastPostDate     DateTime?
+  lat                 Float?
+  lng                 Float?
+  organizationId      String
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  keywords            Keyword[]
+  rankingSnapshots     RankingSnapshot[]
+  auditResults        AuditResult[]
+  recommendations     Recommendation[]
+  citations           Citation[]
+  citationSubmissions CitationSubmission[]
+  reviewCampaigns     ReviewCampaign[]
+  duplicateListings   DuplicateListing[]
+  reviews             Review[]
+  competitors         Competitor[]
+  geoScans            GeoGridScan[]
+  websiteAudits       WebsiteAuditResult[]
+  automations         AutomationRule[]
+  notifications       NotificationItem[]
+
+  @@index([organizationId])
+}
+
+model Keyword {
+  id         String   @id @default(uuid())
+  term       String
+  city       String
+  zip        String?
+  gridPoints String?
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  snapshots  RankingSnapshot[]
+
+  @@index([locationId])
+}
+
+model RankingSnapshot {
+  id              String   @id @default(uuid())
+  position        Int?
+  organicPosition Int?
+  gridPoint       String?
+  checkedAt       DateTime @default(now())
+  keywordId       String
+  keyword         Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  locationId      String
+  location        Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([keywordId])
+  @@index([locationId])
+}
+
+model GeoGridScan {
+  id                String   @id @default(uuid())
+  keywordTerm       String
+  gridSize          String   @default("5x5")
+  radiusMiles       Float    @default(2.0)
+  centerLat         Float
+  centerLng         Float
+  averageRank       Float
+  shareOfLocalVoice Float
+  volatilityScore   Float
+  projectedTrend    Float
+  points            String
+  scannedAt         DateTime @default(now())
+  locationId        String
+  location          Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([locationId])
+}
+
+model Citation {
+  id              String         @id @default(uuid())
+  directoryName   String
+  url             String?
+  napData         String
+  status          CitationStatus @default(MISSING)
+  confidenceScore Float          @default(0.0)
+  locationId      String
+  location        Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([locationId])
+}
+
+model CitationSubmission {
+  id               String   @id @default(uuid())
+  directoryName    String
+  domain           String
+  category         String
+  submissionStatus String   @default("SUBMITTED")
+  submittedAt      DateTime @default(now())
+  liveUrl          String?
+  locationId       String
+  location         Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([locationId])
+}
+
+model ReviewCampaign {
+  id                       String   @id @default(uuid())
+  name                     String
+  type                     String   @default("EMAIL")
+  recipientsCount          Int      @default(0)
+  sentCount                Int      @default(0)
+  openRate                 Float    @default(0.0)
+  positiveReviewsGenerated Int      @default(0)
+  status                   String   @default("ACTIVE")
+  locationId               String
+  location                 Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt                DateTime @default(now())
+
+  @@index([locationId])
+}
+
+model DuplicateListing {
+  id                String   @id @default(uuid())
+  directoryName     String
+  duplicateName     String
+  duplicateAddress  String
+  duplicatePhone    String
+  suppressionStatus String   @default("DETECTED")
+  locationId        String
+  location          Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  detectedAt        DateTime @default(now())
+
+  @@index([locationId])
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  platform    String
+  rating      Int
+  text        String?
+  sentiment   String?
+  replyStatus String   @default("UNANSWERED")
+  replyText   String?
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([locationId])
+}
+
+model AuditResult {
+  id         String     @id @default(uuid())
+  type       AuditType
+  score      Int
+  issues     String
+  locationId String
+  location   Location   @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt  DateTime   @default(now())
+
+  recommendations Recommendation[]
+
+  @@index([locationId])
+}
+
+model Recommendation {
+  id             String       @id @default(uuid())
+  title          String
+  description    String
+  actionableStep String
+  priority       Priority     @default(MEDIUM)
+  impact         Impact       @default(MEDIUM)
+  difficulty     Difficulty   @default(EASY)
+  status         Status       @default(OPEN)
+  timeEstimate   String       @default("30 mins")
+  auditResultId  String?
+  auditResult    AuditResult? @relation(fields: [auditResultId], references: [id], onDelete: SetNull)
+  locationId     String
+  location       Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([locationId])
+  @@index([organizationId])
+}
+
+model Competitor {
+  id                    String   @id @default(uuid())
+  name                  String
+  address               String?
+  website               String?
+  category              String?
+  rating                Float?
+  reviewCount           Int?
+  photoCount            Int?     @default(0)
+  postFrequencyPerMonth Int?     @default(0)
+  shareOfLocalVoice     Float?   @default(0.0)
+  locationId            String
+  location              Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt             DateTime @default(now())
+
+  @@index([locationId])
+}
+
+model WebsiteAuditResult {
+  id               String   @id @default(uuid())
+  url              String
+  score            Int
+  titleTag         String
+  titleTagOk       Boolean
+  metaDescription  String
+  metaDescriptionOk Boolean
+  h1Tag            String
+  h1TagOk          Boolean
+  napOnPage        Boolean  @default(true)
+  schemaTypesFound String
+  httpsOk          Boolean  @default(true)
+  mobileOk         Boolean  @default(true)
+  pageSpeedScore   Int
+  lcpTime          String
+  issues           String
+  locationId       String
+  location         Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  auditedAt        DateTime @default(now())
+
+  @@index([locationId])
+}
+
+model AutomationRule {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  frequency   String   @default("WEEKLY")
+  status      String   @default("ACTIVE")
+  lastRun     DateTime @default(now())
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([locationId])
+}
+
+model ApiKey {
+  id             String       @id @default(uuid())
+  name           String
+  key            String       @unique
+  createdAt      DateTime     @default(now())
+  lastUsedAt     DateTime?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+model WebhookEndpoint {
+  id             String       @id @default(uuid())
+  url            String
+  events         String
+  active         Boolean      @default(true)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+model WhiteLabelSettings {
+  id               String       @id @default(uuid())
+  agencyName       String
+  customDomain     String?
+  logoUrl          String?
+  primaryColor     String       @default("#0c8ce9")
+  customHeaderHtml String?
+  organizationId   String       @unique
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model NotificationItem {
+  id             String       @id @default(uuid())
+  type           String
+  title          String
+  message        String
+  read           Boolean      @default(false)
+  locationId     String
+  location       Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([locationId])
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+}
