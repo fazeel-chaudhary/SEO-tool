@@ -122,6 +122,9 @@ export default function RecommendationsPage() {
                   <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase">
                     Difficulty: {rec.difficulty}
                   </span>
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase flex items-center">
+                    <Clock className="w-3 h-3 mr-1" /> {rec.timeEstimate}
+                  </span>
                 </div>
 
                 <div className="flex items-center space-x-2 self-start md:self-auto">

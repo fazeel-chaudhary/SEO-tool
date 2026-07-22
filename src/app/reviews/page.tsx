@@ -16,6 +16,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   Filter,
+  AlertTriangle,
 } from 'lucide-react';
 
 export default function ReviewsPage() {
@@ -84,7 +85,7 @@ export default function ReviewsPage() {
             Review Management & AI Replies
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Aggregated reviews from Google Maps, Yelp & Facebook for{' '}
+            Aggregated reviews from Google, Facebook, Yelp, Trustpilot & TripAdvisor for{' '}
             <span className="font-bold">{activeLocation.name}</span>
           </p>
         </div>
@@ -153,9 +154,11 @@ export default function ReviewsPage() {
               className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-1.5 font-semibold focus:outline-none cursor-pointer"
             >
               <option value="ALL">All Platforms</option>
-              <option value="Google Maps">Google Maps</option>
+              <option value="Google">Google</option>
               <option value="Yelp">Yelp</option>
               <option value="Facebook">Facebook</option>
+              <option value="Trustpilot">Trustpilot</option>
+              <option value="TripAdvisor">TripAdvisor</option>
             </select>
           </div>
 
@@ -224,6 +227,21 @@ export default function ReviewsPage() {
                 </span>
               </div>
             </div>
+
+            {rev.isFakeDetected && (
+              <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/60 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs text-red-800 dark:text-red-300 font-bold">
+                <span className="flex items-center">
+                  <AlertTriangle className="w-4 h-4 mr-2 text-red-500 shrink-0" />
+                  ⚠️ AI Shield: Flagged as Potential Fake Review (0 history user, negative sentiment anomaly).
+                </span>
+                <button
+                  onClick={() => alert(`Dispute/Takedown request auto-drafted and queued for transmission to ${rev.platform} Admin Console!`)}
+                  className="px-2.5 py-1 bg-red-650 hover:bg-red-750 text-white rounded text-[10px] uppercase tracking-wider shrink-0 transition-colors"
+                >
+                  Dispute & Flag
+                </button>
+              </div>
+            )}
 
             <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{rev.text}</p>
 

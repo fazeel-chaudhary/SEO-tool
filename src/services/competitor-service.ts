@@ -28,4 +28,20 @@ export class CompetitorService {
 
     return summary;
   }
+
+  /**
+   * Identifies real-time competitive alerts and warnings.
+   */
+  static getCompetitorAlerts(location: Location, competitors: CompetitorMetric[]): string[] {
+    const alerts: string[] = [];
+    competitors.forEach((comp) => {
+      if (comp.shareOfLocalVoice > 70) {
+        alerts.push(`High Local Pack Share of Local Voice (${comp.shareOfLocalVoice}%) commanded by "${comp.name}".`);
+      }
+      if (comp.rating >= 4.8 && comp.reviewCount > 300) {
+        alerts.push(`Review Dominance Alert: "${comp.name}" is holding ${comp.reviewCount} reviews at ${comp.rating}★. Recommended: Launch automated review campaign.`);
+      }
+    });
+    return alerts;
+  }
 }

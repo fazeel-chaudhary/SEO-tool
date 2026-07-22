@@ -123,6 +123,12 @@ export class AppStore {
     return location;
   }
 
+  static deleteLocation(id: string): void {
+    const all = this.getLocations();
+    const filtered = all.filter((l) => l.id !== id);
+    setStored(STORAGE_KEYS.LOCATIONS, filtered);
+  }
+
   static getKeywords(locationId?: string): Keyword[] {
     const all = getStored(STORAGE_KEYS.KEYWORDS, INITIAL_KEYWORDS);
     if (!locationId) return all;

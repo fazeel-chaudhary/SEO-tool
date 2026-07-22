@@ -193,6 +193,105 @@ export default function WebsiteAuditPage() {
               </div>
             </div>
           </div>
+
+          {/* Technical & Local SEO Parameters Verification checklist */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Technical SEO Check list */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+              <h3 className="font-bold text-slate-900 dark:text-white text-base flex items-center">
+                <Smartphone className="w-4 h-4 mr-2 text-brand-500" />
+                Technical SEO Parameters
+              </h3>
+              <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Title Tags</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Optimized (Included City & Category)</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Meta Descriptions</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Optimized (Included Phone & CTA)</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Headings Hierarchy</span>
+                  <span className="text-amber-600 font-bold flex items-center"><AlertTriangle className="w-3.5 h-3.5 mr-1" /> H1 Lacks Target Keyword</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Broken Links</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> 0 Broken Links</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Internal Links Map</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> 14 Internal Links</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Robots.txt & Sitemap</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Found & Verified</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">HTTPS Protocol</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> TLS Secure Active</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Mobile Friendliness</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Viewport Tag Configured</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Core Web Vitals</span>
+                  <span className="text-amber-600 font-bold flex items-center"><AlertTriangle className="w-3.5 h-3.5 mr-1" /> PageSpeed: {audit.pageSpeedScore}/100</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Indexability status</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Indexable (Googlebot Allowed)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Local SEO Check list */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+              <h3 className="font-bold text-slate-900 dark:text-white text-base flex items-center">
+                <Globe className="w-4 h-4 mr-2 text-brand-500" />
+                Local SEO Parameters
+              </h3>
+              <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">LocalBusiness Schema</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Found JSON-LD</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">FAQ Schema</span>
+                  <span className="text-amber-600 font-bold flex items-center"><AlertTriangle className="w-3.5 h-3.5 mr-1" /> Missing FAQ Schema</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Service Schema</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Found JSON-LD</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Review Schema</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> AggregateRating Active</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Maps Embed</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Google Map iframe detected</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Click-to-Call</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> tel: links configured</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">NAP Consistency</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Matches GBP Baseline</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Location Pages</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Unique page path verified</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Driving Directions</span>
+                  <span className="text-emerald-600 font-bold flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Link to Google Maps route</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </>
       )}
     </div>

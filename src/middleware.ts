@@ -38,7 +38,8 @@ export function middleware(request: NextRequest) {
   }
 
   // Redirect to dashboard if logged-in user visits auth pages
-  if ((pathname === '/login' || pathname === '/register') && authToken) {
+  const isAuthRoute = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password';
+  if (isAuthRoute && authToken) {
     const dashboardUrl = new URL('/dashboard', request.url);
     return NextResponse.redirect(dashboardUrl);
   }

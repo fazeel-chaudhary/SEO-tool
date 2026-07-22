@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   Zap,
+  AlertTriangle,
 } from 'lucide-react';
 
 export default function CompetitorsPage() {
@@ -72,6 +73,7 @@ export default function CompetitorsPage() {
   };
 
   const aiSummary = CompetitorService.generateAiCompetitiveSummary(activeLocation, competitors);
+  const compAlerts = CompetitorService.getCompetitorAlerts(activeLocation, competitors);
 
   return (
     <div className="space-y-6">
@@ -97,13 +99,34 @@ export default function CompetitorsPage() {
         </button>
       </div>
 
-      {/* AI Competitive Analysis Box */}
-      <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-6 shadow-md border border-slate-800 space-y-3">
-        <h3 className="font-extrabold text-lg flex items-center text-brand-400">
-          <Zap className="w-5 h-5 mr-2 text-brand-400" />
-          AI Ranking Factor Summary
-        </h3>
-        <p className="text-xs text-slate-300 whitespace-pre-line leading-relaxed">{aiSummary}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* AI Competitive Analysis Box */}
+        <div className="md:col-span-2 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-6 shadow-md border border-slate-800 space-y-3">
+          <h3 className="font-extrabold text-base flex items-center text-brand-400">
+            <Zap className="w-5 h-5 mr-2 text-brand-400" />
+            AI Ranking Factor Summary
+          </h3>
+          <p className="text-xs text-slate-300 whitespace-pre-line leading-relaxed">{aiSummary}</p>
+        </div>
+
+        {/* Competitor Alerts Box */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+          <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center">
+            <AlertTriangle className="w-4 h-4 mr-2 text-amber-500" />
+            Competitor Intelligence Alerts
+          </h3>
+          <div className="space-y-2 max-h-[140px] overflow-y-auto text-[11px]">
+            {compAlerts.length > 0 ? (
+              compAlerts.map((alert, idx) => (
+                <div key={idx} className="p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/60 rounded-xl text-amber-800 dark:text-amber-300 font-medium">
+                  {alert}
+                </div>
+              ))
+            ) : (
+              <span className="text-slate-400 italic">No high-threat competitive alerts detected.</span>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Side-by-Side Benchmark Matrix */}
@@ -118,7 +141,10 @@ export default function CompetitorsPage() {
               <tr>
                 <th className="py-3.5 px-4">Business Listing</th>
                 <th className="py-3.5 px-4">Rating & Reviews</th>
-                <th className="py-3.5 px-4">Category</th>
+                <th className="py-3.5 px-4">Domain Auth</th>
+                <th className="py-3.5 px-4">Backlinks</th>
+                <th className="py-3.5 px-4">Organic Traffic</th>
+                <th className="py-3.5 px-4">Citations Count</th>
                 <th className="py-3.5 px-4">Photo Count</th>
                 <th className="py-3.5 px-4">Post Frequency</th>
                 <th className="py-3.5 px-4 text-right">Share of Voice</th>
@@ -134,7 +160,10 @@ export default function CompetitorsPage() {
                 <td className="py-3.5 px-4 text-slate-900 dark:text-white">
                   4.8★ (128 reviews)
                 </td>
-                <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300">{activeLocation.category}</td>
+                <td className="py-3.5 px-4 text-slate-750 dark:text-slate-300">DA 28</td>
+                <td className="py-3.5 px-4 text-slate-750 dark:text-slate-300">410 links</td>
+                <td className="py-3.5 px-4 text-slate-750 dark:text-slate-300">920 visits/mo</td>
+                <td className="py-3.5 px-4 text-slate-750 dark:text-slate-300">32 citations</td>
                 <td className="py-3.5 px-4 text-slate-900 dark:text-white">{activeLocation.gbpPhotoCount} photos</td>
                 <td className="py-3.5 px-4 text-slate-900 dark:text-white">{activeLocation.gbpPostCount} posts/mo</td>
                 <td className="py-3.5 px-4 text-right font-black text-brand-600 dark:text-brand-400">
@@ -150,7 +179,10 @@ export default function CompetitorsPage() {
                     <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 mr-1" />
                     {comp.rating}★ ({comp.reviewCount} reviews)
                   </td>
-                  <td className="py-3.5 px-4 text-slate-500">{comp.category}</td>
+                  <td className="py-3.5 px-4 text-slate-650 dark:text-slate-400">DA {comp.domainAuthority || 30}</td>
+                  <td className="py-3.5 px-4 text-slate-650 dark:text-slate-400">{comp.backlinkCount || 380} links</td>
+                  <td className="py-3.5 px-4 text-slate-650 dark:text-slate-400">{comp.organicTraffic || 850} visits/mo</td>
+                  <td className="py-3.5 px-4 text-slate-650 dark:text-slate-400">{comp.citationCount || 25} citations</td>
                   <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300">{comp.photoCount} photos</td>
                   <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300">
                     {comp.postFrequencyPerMonth} posts/mo

@@ -24,6 +24,26 @@ export class AuditEngine {
     // 1. GBP Health Audit
     let gbpDeductions = 0;
 
+    if (location.gbpStatus === 'SUSPENDED') {
+      issues.push('Google Business Profile status is SUSPENDED. Local visibility is completely disabled.');
+      gbpDeductions += 55;
+      recommendations.push({
+        id: `rec-audit-susp-${location.id}`,
+        title: 'File Google Business Profile Reinstatement Appeal',
+        description: `Listing is suspended. This completely blocks local search visibility.`,
+        actionableStep: 'Review Google Guidelines, remove keyword stuffing from name, verify NAP matches your official business registration, and submit a GBP reinstatement appeal form.',
+        priority: 'HIGH',
+        impact: 'HIGH',
+        difficulty: 'HARD',
+        timeEstimate: '3-5 days',
+        status: 'OPEN',
+        auditType: 'GBP',
+        locationId: location.id,
+        organizationId: location.organizationId,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
     if (!location.gbpConnected) {
       issues.push('Google Business Profile OAuth is disconnected');
       gbpDeductions += 30;

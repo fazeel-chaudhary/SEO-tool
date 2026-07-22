@@ -45,6 +45,46 @@ export class AiAssistantService {
       return analysis;
     }
 
+    if (qLower.includes('strategy') || qLower.includes('optimization') || qLower.includes('optimize')) {
+      let response = `### AI Optimization Strategies for ${location.name}:\n\n`;
+      response += `1. **Add H1 Local Keywords**: Your homepage H1 lacks target local keywords. Change it to include your city (e.g., "${location.category} in ${location.city}").\n`;
+      response += `2. **FAQ Schema Integration**: We detected missing FAQPage structured JSON-LD data. Use the Schema Generator tab to copy and inject this.\n`;
+      response += `3. **Photos Upload Campaign**: Boost your Google Business Profile photo count from ${location.gbpPhotoCount} to 35+ to match top competitors.\n`;
+      response += `4. **Click-to-Call Linkages**: Ensure all phone number mentions on your website use absolute href="tel:${location.phone}" tags for mobile crawlers.`;
+      return response;
+    }
+
+    if (qLower.includes('category') || qLower.includes('categories') || qLower.includes('recommendation')) {
+      let response = `### Primary & Secondary Category Mapping for ${location.name}:\n\n`;
+      response += `• **Primary Category**: **${location.category}** (Matches GBP registration baseline).\n`;
+      response += `• **Secondary Categories**: ${location.additionalCats?.join(', ') || 'None configured'}.\n\n`;
+      response += `**AI Recommendation**: Add *"Emergency Dentist"* and *"Cosmetic Dentist"* as secondary categories to increase search impressions by up to 25% for emergency-related keywords.`;
+      return response;
+    }
+
+    if (qLower.includes('citation') || qLower.includes('directories') || qLower.includes('opportunity')) {
+      let response = `### Citation Opportunities & NAP Audit for ${location.name}:\n\n`;
+      response += `- **Current Accuracy**: ${citAudit.score}% NAP Consistency.\n`;
+      response += `- **Inconsistent Listings**: ${citAudit.incorrectCount} (e.g. Yelp, Superpages).\n`;
+      response += `- **Missing Citation Opportunities**: ${citAudit.missingCount} directories.\n\n`;
+      response += `**Top Claims Opportunities**:\n`;
+      response += `1. **Bing Places**: Claim listing (est. impact: HIGH).\n`;
+      response += `2. **Apple Maps**: Sync business profile (est. impact: HIGH).\n`;
+      response += `3. **YellowPages**: Submit citation profile (est. impact: MEDIUM).`;
+      return response;
+    }
+
+    if (qLower.includes('plan') || qLower.includes('action plan')) {
+      let response = `### AI Step-by-Step Action Plan for ${location.name}:\n\n`;
+      openRecs.slice(0, 4).forEach((rec, idx) => {
+        response += `#### ${idx + 1}. ${rec.title}\n`;
+        response += `- **Priority**: ${rec.priority} | **Difficulty**: ${rec.difficulty}\n`;
+        response += `- **Impact**: ${rec.impact} | **Time Required**: ${rec.timeEstimate}\n`;
+        response += `- **Action**: ${rec.actionableStep}\n\n`;
+      });
+      return response;
+    }
+
     if (qLower.includes('priority') || qLower.includes('action') || qLower.includes('do first')) {
       let reply = `### Top Priority Actions for ${location.name}:\n\n`;
       openRecs.slice(0, 3).forEach((rec, idx) => {
@@ -60,6 +100,6 @@ export class AiAssistantService {
 
     // Default intelligence summary
     const auditReport = AuditEngine.runUnifiedAudit(location);
-    return `### Local SEO Overview for ${location.name}:\n\n- **Local SEO Index Score**: ${auditReport.overallScore}/100\n- **Citation Accuracy**: ${citAudit.score}%\n- **Review Response Rate**: ${revAudit.responseRate}%\n- **Active Recommendations**: ${openRecs.length} tasks open.\n\nAsk me specific questions like *"Why did my rankings drop?"* or *"What are my top priorities today?"* for detailed diagnoses!`;
+    return `### Local SEO Overview for ${location.name}:\n\n- **Local SEO Index Score**: ${auditReport.overallScore}/100\n- **Citation Accuracy**: ${citAudit.score}%\n- **Review Response Rate**: ${revAudit.responseRate}%\n- **Active Recommendations**: ${openRecs.length} tasks open.\n\nAsk me specific questions like:\n- *"Why did my rankings drop?"*\n- *"What optimization strategies should I use?"*\n- *"Show me my citation opportunities"* \n- *"Suggest business categories"* \n- *"Generate an action plan"*`;
   }
 }

@@ -47,6 +47,7 @@ export interface Location {
   additionalCats?: string[];
   placeId?: string;
   gbpConnected: boolean;
+  gbpStatus?: 'VERIFIED' | 'SUSPENDED' | 'PENDING_VERIFICATION';
   gbpHours?: string;
   gbpPhotoCount: number;
   gbpPostCount: number;
@@ -112,6 +113,10 @@ export interface CompetitorMetric {
   photoCount: number;
   postFrequencyPerMonth: number;
   shareOfLocalVoice: number;
+  domainAuthority?: number;
+  backlinkCount?: number;
+  organicTraffic?: number;
+  citationCount?: number;
   locationId: string;
   createdAt: string;
 }
@@ -207,7 +212,7 @@ export interface DuplicateListing {
 
 export interface Review {
   id: string;
-  platform: 'Google Maps' | 'Yelp' | 'Facebook';
+  platform: 'Google' | 'Yelp' | 'Facebook' | 'Trustpilot' | 'TripAdvisor';
   rating: number;
   reviewerName: string;
   reviewerAvatar?: string;
@@ -215,6 +220,7 @@ export interface Review {
   sentiment: Sentiment;
   replyStatus: ReplyStatus;
   replyText?: string;
+  isFakeDetected?: boolean;
   locationId: string;
   createdAt: string;
 }

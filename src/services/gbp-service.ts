@@ -17,6 +17,7 @@ export class GbpService {
     const updatedLocation: Location = {
       ...loc,
       gbpConnected: true,
+      gbpStatus: 'VERIFIED',
       category: loc.category || 'Local Business',
       additionalCats: loc.additionalCats?.length ? loc.additionalCats : ['Service Provider'],
       gbpHours: loc.gbpHours || 'Mon-Fri 8:00 AM - 5:00 PM',

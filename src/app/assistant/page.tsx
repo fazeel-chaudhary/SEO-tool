@@ -61,9 +61,10 @@ export default function AssistantPage() {
 
   const samplePrompts = [
     'Why did my rankings drop?',
-    'What are my top 3 priority actions today?',
-    'Summarize my customer review sentiment',
-    'How do I compare against competitors?',
+    'What optimization strategies should I use?',
+    'Suggest primary & secondary categories',
+    'Show citation opportunities',
+    'Generate step-by-step action plan',
   ];
 
   return (

@@ -87,6 +87,7 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
     { label: 'Duplicate Suppressor', href: '/duplicate-suppressor', icon: ShieldAlert },
     { label: 'Competitor Intelligence', href: '/competitors', icon: Users },
     { label: 'Website Audit', href: '/website-audit', icon: Globe },
+    { label: 'Backlinks & Outreach', href: '/backlinks', icon: Globe },
     { label: 'AI Content Studio', href: '/content-tools', icon: FileText },
     { label: 'JSON-LD Schema', href: '/schema-generator', icon: Code2 },
     { label: 'Automated Workflows', href: '/automation', icon: Zap },

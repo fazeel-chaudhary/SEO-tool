@@ -139,6 +139,45 @@ export default function CitationsPage() {
         </div>
       </div>
 
+      {/* Audited Baseline Information */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
+            Audited Baseline Profile (NAP Consistency Source)
+          </h3>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-50 dark:bg-brand-950 text-brand-700 dark:text-brand-300">
+            Source of Truth
+          </span>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-[11px] text-slate-600 dark:text-slate-400">
+          <div className="space-y-1">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Business Details</span>
+            <p><strong className="text-slate-900 dark:text-white">Name:</strong> {activeLocation.name}</p>
+            <p><strong className="text-slate-900 dark:text-white">Category:</strong> {activeLocation.category}</p>
+            <p><strong className="text-slate-900 dark:text-white">Description:</strong> Professional Local Service Provider</p>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">NAP Info</span>
+            <p><strong className="text-slate-900 dark:text-white">Address:</strong> {activeLocation.address}, {activeLocation.city}</p>
+            <p><strong className="text-slate-900 dark:text-white">Phone:</strong> {activeLocation.phone}</p>
+            <p><strong className="text-slate-900 dark:text-white">Website:</strong> {activeLocation.website || 'N/A'}</p>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Hours & Coordinates</span>
+            <p><strong className="text-slate-900 dark:text-white">Hours:</strong> {activeLocation.gbpHours || 'Mon-Fri 8am-5pm'}</p>
+            <p><strong className="text-slate-900 dark:text-white">Coordinates:</strong> {activeLocation.lat || 30.2672}, {activeLocation.lng || -97.7431}</p>
+            <p><strong className="text-slate-900 dark:text-white">Images:</strong> {activeLocation.gbpPhotoCount} verified</p>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Social Connections</span>
+            <p><strong className="text-slate-900 dark:text-white">Facebook:</strong> facebook.com/local-biz</p>
+            <p><strong className="text-slate-900 dark:text-white">Instagram:</strong> instagram.com/local-biz</p>
+            <p><strong className="text-slate-900 dark:text-white">Email:</strong> support@domain.com</p>
+          </div>
+        </div>
+      </div>
+
       {/* Filter & Search Bar */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full sm:w-80">

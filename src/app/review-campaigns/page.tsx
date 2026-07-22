@@ -120,6 +120,53 @@ export default function ReviewCampaignsPage() {
         </div>
       </div>
 
+      {/* Review QR Code Generator Block */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+        <div className="md:col-span-2 space-y-3">
+          <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+            Front-Desk Review QR Code Generator
+          </h3>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Generate and print a customer-facing QR code for your checkout counter, flyers, or business cards. Scanning this code takes patients directly to your verified Google Business Profile review write page.
+          </p>
+          <div className="bg-slate-50 dark:bg-slate-850/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700/80 text-[11px] font-mono break-all text-slate-600 dark:text-slate-300">
+            Target URL: https://search.google.com/local/writereview?placeid={activeLocation.placeId || 'ChIJbU60yXA1RIYR3HwY2aY0qWg'}
+          </div>
+          <div className="flex flex-wrap gap-2.5">
+            <button
+              onClick={() => alert('Downloading high-res SVG vector QR template...')}
+              className="px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+            >
+              Download SVG Vector
+            </button>
+            <button
+              onClick={() => alert('Opening print preview for tabletop display template...')}
+              className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-350 rounded-xl text-xs font-bold transition-all"
+            >
+              Print Tabletop Card
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-955 rounded-2xl border border-slate-200 dark:border-slate-800">
+          {/* Mock QR Code in SVG */}
+          <svg className="w-32 h-32 text-slate-900 dark:text-white" viewBox="0 0 100 100" fill="currentColor">
+            {/* Outer border & corners */}
+            <path d="M 0 0 h 30 v 10 H 10 v 20 H 0 Z M 70 0 h 30 v 30 H 90 V 10 H 70 Z M 0 70 h 10 v 20 h 20 v 10 H 0 Z M 90 90 v -20 h 10 v 30 H 70 v -10 Z" />
+            {/* Center mockup squares */}
+            <rect x="15" y="15" width="20" height="20" fill="currentColor" />
+            <rect x="20" y="20" width="10" height="10" fill="white" className="dark:fill-slate-950" />
+            <rect x="65" y="15" width="20" height="20" fill="currentColor" />
+            <rect x="70" y="20" width="10" height="10" fill="white" className="dark:fill-slate-950" />
+            <rect x="15" y="65" width="20" height="20" fill="currentColor" />
+            <rect x="20" y="70" width="10" height="10" fill="white" className="dark:fill-slate-950" />
+            {/* Simulated bitstream pattern */}
+            <path d="M 45 15 h 5 v 5 h -5 Z M 55 15 h 5 v 5 h -5 Z M 45 25 h 15 v 5 h -15 Z M 45 35 h 5 v 15 h 5 v -15 Z M 55 35 h 10 v 5 h -10 Z M 75 45 h 10 v 5 h -10 Z M 15 45 h 10 v 5 h -10 Z M 25 55 h 25 v 5 h -25 Z M 65 55 h 15 v 5 h -15 Z M 55 65 h 5 v 20 h -5 Z M 45 75 h 5 v 5 h -5 Z M 65 75 h 15 v 5 h -15 Z M 75 85 h 15 v 5 h -15 Z" />
+          </svg>
+          <span className="text-[10px] font-bold text-slate-400 mt-2.5">Auto-Generated Link</span>
+        </div>
+      </div>
+
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">

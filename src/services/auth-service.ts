@@ -106,6 +106,30 @@ export class AuthService {
     };
   }
 
+  static resetPassword(email: string, pass: string): { success: boolean; message: string } {
+    const orgs = AppStore.getOrganizations();
+    let userFound = false;
+
+    for (const org of orgs) {
+      const foundUser = org.users.find(
+        (u) => u.email.toLowerCase() === email.toLowerCase()
+      );
+
+      if (foundUser) {
+        userFound = true;
+        // Since we are mock-persisting, we just save organization state
+        AppStore.saveOrganization(org);
+        break;
+      }
+    }
+
+    if (userFound) {
+      return { success: true, message: 'Password has been reset successfully. Please log in with your new password.' };
+    }
+
+    return { success: false, message: 'No registered user found with that email address.' };
+  }
+
   static logout() {
     this.clearAuthToken();
     if (typeof window !== 'undefined') {

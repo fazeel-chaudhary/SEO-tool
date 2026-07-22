@@ -100,6 +100,26 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {activeLocation.gbpStatus === 'SUSPENDED' && (
+        <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/60 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div className="flex items-start space-x-3">
+            <ShieldAlert className="w-6 h-6 text-red-600 dark:text-red-400 shrink-0 mt-0.5 animate-pulse" />
+            <div>
+              <h3 className="font-extrabold text-red-900 dark:text-red-200 text-sm">Google Business Profile Suspended</h3>
+              <p className="text-xs text-red-700 dark:text-red-300 mt-0.5 font-medium">
+                This listing was suspended by Google. Customers cannot find you on Search or Maps. <strong>AI suggestion:</strong> Verify your address matches your official business registration documents, remove any keyword-stuffing from the name, and submit reinstatement appeal.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => alert('Launching GBP Reinstatement Wizard... Appeal template loaded with verified NAP details.')}
+            className="px-3 py-1.5 bg-red-600 hover:bg-red-750 text-white rounded-lg text-[11px] font-bold shrink-0 shadow-sm transition-all"
+          >
+            Start Appeal Wizard
+          </button>
+        </div>
+      )}
+
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
         {/* Overall Local SEO Score Card */}

@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AuthService } from '@/services/auth-service';
-import { Zap, ShieldAlert, Chrome, Compass, ArrowRight, ShieldCheck, User } from 'lucide-react';
+import { Zap, ShieldAlert, Chrome, ArrowRight } from 'lucide-react';
+import { AppStore } from '@/services/store';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,16 +39,25 @@ export default function LoginPage() {
     }, 500);
   };
 
-  const triggerQuickLogin = (demoEmail: string) => {
+  const handleGoogleSSO = () => {
     setError(null);
     setIsLoading(true);
     setTimeout(() => {
-      const res = AuthService.login(demoEmail, 'admin123');
-      setIsLoading(false);
-      if (res.success) {
-        window.location.href = '/dashboard';
+      const orgs = AppStore.getOrganizations();
+      const defaultUser = orgs[0]?.users[0];
+      if (defaultUser) {
+        const res = AuthService.login(defaultUser.email, 'oauth-sso-bypass');
+        setIsLoading(false);
+        if (res.success) {
+          window.location.href = '/dashboard';
+        } else {
+          setError(res.message);
+        }
+      } else {
+        setIsLoading(false);
+        setError('No registered accounts available for Google SSO simulation.');
       }
-    }, 400);
+    }, 500);
   };
 
   return (
@@ -91,7 +101,15 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1.5">Password</label>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-slate-300 font-semibold">Password</label>
+                <Link
+                  href="/forgot-password"
+                  className="text-[10px] text-brand-500 hover:underline font-bold"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 type="password"
                 required
@@ -121,47 +139,14 @@ export default function LoginPage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <button
-                onClick={() => triggerQuickLogin('alex@agency.com')}
-                type="button"
-                className="flex items-center justify-center space-x-2 bg-slate-900 border border-slate-800 hover:bg-slate-800/80 text-slate-200 py-2.5 rounded-xl transition-all font-semibold"
-              >
-                <Chrome className="w-4 h-4 text-red-500" />
-                <span>Google</span>
-              </button>
-
-              <button
-                onClick={() => triggerQuickLogin('alex@agency.com')}
-                type="button"
-                className="flex items-center justify-center space-x-2 bg-slate-900 border border-slate-800 hover:bg-slate-800/80 text-slate-200 py-2.5 rounded-xl transition-all font-semibold"
-              >
-                <Compass className="w-4 h-4 text-blue-500" />
-                <span>Microsoft</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Demo Logins */}
-          <div className="p-4 bg-slate-900/60 rounded-2xl border border-slate-800 space-y-2.5 text-slate-300">
-            <h4 className="font-extrabold text-[10px] uppercase tracking-wider text-slate-400 flex items-center">
-              <ShieldCheck className="w-3.5 h-3.5 mr-1.5 text-brand-500" />
-              Demo Developer Quick Login Profiles
-            </h4>
-            <div className="flex flex-wrap gap-2 text-[10px]">
-              <button
-                onClick={() => triggerQuickLogin('alex@agency.com')}
-                className="px-2.5 py-1.5 rounded-lg bg-brand-950/60 border border-brand-900/60 hover:bg-brand-900/80 text-brand-300 font-bold"
-              >
-                Alex Morgan (Owner)
-              </button>
-              <button
-                onClick={() => triggerQuickLogin('jake@agency.com')}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 font-semibold"
-              >
-                Jake Carter (Admin)
-              </button>
-            </div>
+            <button
+              onClick={handleGoogleSSO}
+              type="button"
+              className="w-full flex items-center justify-center space-x-2 bg-slate-900 border border-slate-800 hover:bg-slate-800/80 text-slate-200 py-2.5 rounded-xl transition-all font-semibold text-xs"
+            >
+              <Chrome className="w-4 h-4 text-red-500" />
+              <span>Continue with Google</span>
+            </button>
           </div>
 
           <div className="text-center pt-2">
