@@ -5,7 +5,7 @@ export class WebsiteAuditService {
   /**
    * Crawls & analyzes a location website for Local SEO factors.
    */
-  static runWebsiteAudit(location: Location): WebsiteAuditResult {
+  static async runWebsiteAudit(location: Location): Promise<WebsiteAuditResult> {
     const websiteUrl = location.website || `https://${location.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
 
     const issues: string[] = [];
@@ -32,9 +32,30 @@ export class WebsiteAuditService {
       scoreDeductions += 10;
     }
 
-    // 5. Core Web Vitals & PageSpeed Insights API check
-    const pageSpeedScore = 72;
-    const lcpTime = '2.4s';
+    // 5. Google PageSpeed API check
+    let pageSpeedScore = 72;
+    let lcpTime = '2.4s';
+
+    try {
+      const response = await fetch('/api/v1/audit/pagespeed', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: websiteUrl }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === 'success') {
+          pageSpeedScore = data.score;
+          lcpTime = data.lcp;
+        }
+      }
+    } catch (err) {
+      console.warn('Backend PageSpeed query failed, falling back to mock:', err);
+    }
+
     if (pageSpeedScore < 80) {
       issues.push(`Mobile PageSpeed Score is ${pageSpeedScore}/100 (Recommended >= 85)`);
       scoreDeductions += 10;

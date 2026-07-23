@@ -119,7 +119,7 @@ export default function RankTrackerPage() {
             Tracked Search Terms ({keywords.length})
           </span>
           <span className="text-[11px] font-semibold text-slate-500">
-            Provider: <span className="text-brand-600 font-bold">SerpApi / DataForSEO (Local Pack)</span>
+            Provider: <span className="text-brand-600 font-bold">Search Ranking API Engine (Local Pack)</span>
           </span>
         </div>
 

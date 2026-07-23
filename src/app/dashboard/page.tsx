@@ -217,7 +217,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded-md">
-              SerpApi / DataForSEO Active
+              Rank API Service Active
             </span>
           </div>
 

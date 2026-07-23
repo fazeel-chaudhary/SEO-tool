@@ -17,6 +17,10 @@ import {
   CitationSubmission,
   ReviewCampaign,
   DuplicateListing,
+  IntegrationConnector,
+  AuditLog,
+  AiPrompt,
+  User,
 } from '@/lib/types';
 import {
   INITIAL_ORGANIZATIONS,
@@ -37,6 +41,8 @@ import {
   INITIAL_CITATION_SUBMISSIONS,
   INITIAL_REVIEW_CAMPAIGNS,
   INITIAL_DUPLICATE_LISTINGS,
+  INITIAL_AI_PROMPTS,
+  INITIAL_AUDIT_LOGS,
 } from '@/lib/mock-data';
 
 const STORAGE_KEYS = {
@@ -59,6 +65,9 @@ const STORAGE_KEYS = {
   CITATION_SUBMISSIONS: 'seo_os_citation_submissions',
   REVIEW_CAMPAIGNS: 'seo_os_review_campaigns',
   DUPLICATES: 'seo_os_duplicates',
+  INTEGRATIONS: 'seo_os_integrations',
+  AUDIT_LOGS: 'seo_os_audit_logs',
+  AI_PROMPTS: 'seo_os_ai_prompts',
 };
 
 function getStored<T>(key: string, fallback: T): T {
@@ -374,5 +383,123 @@ export class AppStore {
       item.suppressionStatus = 'SUPPRESSED';
       setStored(STORAGE_KEYS.DUPLICATES, all);
     }
+  }
+
+  // Users Management (nested inside Orgs)
+  static getUsers(orgId?: string): User[] {
+    const orgs = this.getOrganizations();
+    if (orgId) {
+      const org = orgs.find((o) => o.id === orgId);
+      return org ? org.users || [] : [];
+    }
+    const allUsers: User[] = [];
+    orgs.forEach((o) => {
+      if (o.users) {
+        allUsers.push(...o.users);
+      }
+    });
+    return allUsers;
+  }
+
+  static saveUser(user: User): User {
+    const orgs = this.getOrganizations();
+    const org = orgs.find((o) => o.id === user.organizationId);
+    if (org) {
+      if (!org.users) org.users = [];
+      const idx = org.users.findIndex((u) => u.id === user.id);
+      if (idx >= 0) {
+        org.users[idx] = user;
+      } else {
+        org.users.push(user);
+      }
+      setStored(STORAGE_KEYS.ORGS, orgs);
+    }
+    return user;
+  }
+
+  static deleteUser(id: string): void {
+    const orgs = this.getOrganizations();
+    orgs.forEach((org) => {
+      if (org.users) {
+        const filtered = org.users.filter((u) => u.id !== id);
+        if (filtered.length !== org.users.length) {
+          org.users = filtered;
+        }
+      }
+    });
+    setStored(STORAGE_KEYS.ORGS, orgs);
+  }
+
+  // Integrations Connectors
+  static getIntegrations(locationId: string): IntegrationConnector[] {
+    const all = getStored<IntegrationConnector[]>(STORAGE_KEYS.INTEGRATIONS, []);
+    const filtered = all.filter((i) => i.locationId === locationId);
+    if (filtered.length === 0) {
+      const defaults: IntegrationConnector[] = [
+        { name: 'Google Business Profile', category: 'Search & Maps', status: 'CONNECTED', lastSync: '10 mins ago', locationId },
+        { name: 'Google Analytics', category: 'Search & Maps', status: 'CONNECTED', lastSync: '1 hour ago', locationId },
+        { name: 'Google Search Console', category: 'Search & Maps', status: 'CONNECTED', lastSync: '1 hour ago', locationId },
+        { name: 'Google Maps API', category: 'Search & Maps', status: 'CONNECTED', lastSync: 'Live', locationId },
+        { name: 'Bing Places', category: 'Search & Maps', status: 'DISCONNECTED', locationId },
+        { name: 'Apple Business Connect', category: 'Search & Maps', status: 'CONNECTED', lastSync: '1 day ago', locationId },
+        { name: 'Facebook Graph API', category: 'Social & Reviews', status: 'CONNECTED', lastSync: '2 hours ago', locationId },
+        { name: 'Yelp Fusion API', category: 'Social & Reviews', status: 'CONNECTED', lastSync: '5 mins ago', locationId },
+        { name: 'Trustpilot API', category: 'Social & Reviews', status: 'DISCONNECTED', locationId },
+        { name: 'Stripe Billing Connect', category: 'Payment', status: 'CONNECTED', lastSync: 'Real-time', locationId },
+        { name: 'OpenAI (GPT-4o)', category: 'AI & CRM', status: 'CONNECTED', lastSync: 'Live', locationId },
+        { name: 'Gemini 1.5 Pro', category: 'AI & CRM', status: 'CONNECTED', lastSync: 'Live', locationId },
+        { name: 'HubSpot / Salesforce CRM', category: 'AI & CRM', status: 'DISCONNECTED', locationId },
+      ];
+      const updated = [...all, ...defaults];
+      setStored(STORAGE_KEYS.INTEGRATIONS, updated);
+      return defaults;
+    }
+    return filtered;
+  }
+
+  static saveIntegrations(locationId: string, integrations: IntegrationConnector[]): void {
+    const all = getStored<IntegrationConnector[]>(STORAGE_KEYS.INTEGRATIONS, []);
+    const filtered = all.filter((i) => i.locationId !== locationId);
+    const updated = [...filtered, ...integrations];
+    setStored(STORAGE_KEYS.INTEGRATIONS, updated);
+  }
+
+  // AI Prompts
+  static getAiPrompts(): AiPrompt[] {
+    return getStored<AiPrompt[]>(STORAGE_KEYS.AI_PROMPTS, INITIAL_AI_PROMPTS);
+  }
+
+  static saveAiPrompt(prompt: AiPrompt): AiPrompt {
+    const all = this.getAiPrompts();
+    const index = all.findIndex((p) => p.id === prompt.id);
+    if (index >= 0) all[index] = prompt;
+    else all.push(prompt);
+    setStored(STORAGE_KEYS.AI_PROMPTS, all);
+    return prompt;
+  }
+
+  // Security Audit Logs
+  static getAuditLogs(): AuditLog[] {
+    return getStored<AuditLog[]>(STORAGE_KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS);
+  }
+
+  static saveAuditLog(log: AuditLog): AuditLog {
+    const all = this.getAuditLogs();
+    all.unshift(log);
+    setStored(STORAGE_KEYS.AUDIT_LOGS, all);
+    return log;
+  }
+
+  // Save/Update Automation Rule details
+  static saveAutomationRule(locationId: string, rule: AutomationRule): AutomationRule {
+    const all = getStored(STORAGE_KEYS.AUTOMATIONS, INITIAL_AUTOMATIONS);
+    const index = all.findIndex((a) => a.id === rule.id && a.locationId === locationId);
+    if (index >= 0) {
+      all[index] = rule;
+    } else {
+      all.push(rule);
+    }
+    setStored(STORAGE_KEYS.AUTOMATIONS, all);
+    return rule;
   }
 }

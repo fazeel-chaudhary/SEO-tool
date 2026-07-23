@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   title: 'Local SEO Operating System | Multi-Tenant Local Search SaaS',
   description:
     'A SaaS platform combining rank tracking, Google Business Profile management, health checks, and AI recommendations into one product.',
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/favicon.ico',
+    apple: '/icon.png',
+  },
 };
 
 export default function RootLayout({

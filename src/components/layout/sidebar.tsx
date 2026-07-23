@@ -108,45 +108,36 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
     { label: 'Billing & Plans', href: '/billing', icon: CreditCard },
   ];
 
+  const isUserAdmin = currentUser?.role === 'OWNER' || currentUser?.role === 'ADMIN';
+  const allNavItems = isUserAdmin
+    ? [...navItems, { label: 'Admin Panel', href: '/admin', icon: ShieldCheck }]
+    : navItems;
+
   const sidebarContent = (
     <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full sticky top-0 transition-colors duration-200 z-30">
       {/* Brand Logo & Header */}
       <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-brand-500/20">
-            <Zap className="w-5 h-5 fill-current" />
-          </div>
-          <div>
-            <h1 className="font-bold text-slate-900 dark:text-white leading-none text-base">Local SEO OS</h1>
-            <span className="text-[10px] uppercase tracking-wider font-semibold text-brand-600 dark:text-brand-400">
+        <div className="flex items-center space-x-2.5 shrink-0">
+          <img src="/logo.png" className="w-11 h-11 object-contain shrink-0" alt="Local SEO OS Logo" />
+          <div className="flex flex-col shrink-0">
+            <h1 className="font-black text-slate-900 dark:text-white leading-tight text-xs tracking-tight">
+              Local<br />SEO
+            </h1>
+            <span className="text-[9px] uppercase tracking-wider font-bold text-brand-600 dark:text-brand-400 whitespace-nowrap mt-1">
               Operating System
             </span>
           </div>
         </div>
 
-        <div className="flex items-center space-x-1">
-          {/* Light / Dark Mode Toggle */}
-          {mounted && (
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              title="Toggle Light / Dark Mode"
-              id="theme-toggle-btn"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
-            </button>
-          )}
-
-          {/* Close button for mobile drawer */}
-          {onCloseMobile && (
-            <button
-              onClick={onCloseMobile}
-              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg md:hidden"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
-        </div>
+        {/* Close button for mobile drawer */}
+        {onCloseMobile && (
+          <button
+            onClick={onCloseMobile}
+            className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg md:hidden"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* 14-Day Free Trial Banner */}
@@ -171,7 +162,7 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           <select
             value={activeOrg?.id || ''}
             onChange={(e) => setActiveOrg(e.target.value)}
-            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg py-2 px-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer shadow-sm pr-8"
+            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg py-2 px-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer shadow-sm pr-8 appearance-none"
           >
             {organizations.map((org) => (
               <option key={org.id} value={org.id}>
@@ -201,7 +192,7 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
         <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
           Core OS
         </div>
-        {navItems.map((item) => {
+        {allNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
           return (
@@ -243,6 +234,29 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
 
       {/* Sign Out & Footer */}
       <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 text-[11px] space-y-2">
+        <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200 dark:border-slate-800/60">
+          <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500">Theme Mode</span>
+          {mounted && (
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors flex items-center space-x-1.5"
+              title="Toggle Light / Dark Mode"
+              id="theme-toggle-btn"
+            >
+              {theme === 'dark' ? (
+                <>
+                  <Sun className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-[10px] font-bold text-slate-300">Light</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-[10px] font-bold text-slate-600">Dark</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
         <button
           onClick={() => AuthService.logout()}
           className="w-full py-2 bg-slate-200 dark:bg-slate-800 hover:bg-red-600 hover:text-white dark:hover:bg-red-600 text-slate-700 dark:text-slate-300 font-bold rounded-lg transition-all flex items-center justify-center space-x-2 text-xs"

@@ -288,3 +288,30 @@ export interface AuditResult {
   locationId: string;
   createdAt: string;
 }
+
+export interface IntegrationConnector {
+  name: string;
+  category: 'Search & Maps' | 'Social & Reviews' | 'AI & CRM' | 'Payment';
+  status: 'CONNECTED' | 'DISCONNECTED';
+  lastSync?: string;
+  locationId: string;
+}
+
+export interface AuditLog {
+  id: string;
+  timestamp: string;
+  userId: string;
+  userName: string;
+  action: string;
+  details: string;
+  ipAddress: string;
+}
+
+export interface AiPrompt {
+  id: string;
+  name: string;
+  description: string;
+  template: string;
+  lastUpdated: string;
+}
+

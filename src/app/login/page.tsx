@@ -61,16 +61,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-black flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Dynamic background blur objects */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-600/20 rounded-full blur-3xl" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
         <div className="flex justify-center">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-brand-500/20">
-            <Zap className="w-6 h-6 fill-current" />
-          </div>
+          <img src="/logo.png" className="w-12 h-12 rounded-2xl object-contain bg-white border border-[#F66A0A]/20 p-0.5" alt="Local SEO OS Logo" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-black text-white">Local SEO OS</h2>
         <p className="mt-2 text-center text-xs text-slate-400">

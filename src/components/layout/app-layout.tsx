@@ -12,11 +12,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password';
 
   if (isAuthPage) {
-    return <div className="min-h-screen bg-slate-900">{children}</div>;
+    return <div className="min-h-screen bg-black">{children}</div>;
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <div className="flex min-h-screen bg-cream dark:bg-black text-slate-900 dark:text-slate-100">
       <Sidebar
         isMobileOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}

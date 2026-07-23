@@ -384,16 +384,155 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
 ];
 
 export const INITIAL_AUTOMATIONS: AutomationRule[] = [
+  // Location 1 (loc-1)
   {
     id: 'auto-1',
-    name: 'Weekly GBP & Citation Health Check',
-    description: 'Runs automated audit checks every Monday at 02:00 AM.',
+    name: 'Scheduled Site Audits',
+    description: 'Crawl landing pages for heading status, schema validations, and link health.',
     frequency: 'WEEKLY',
     status: 'ACTIVE',
-    lastRun: '2026-07-21T00:00:00Z',
+    lastRun: '2026-07-22T08:00:00Z',
     locationId: 'loc-1',
   },
+  {
+    id: 'auto-2',
+    name: 'Citation Consistency Monitoring',
+    description: 'Audit directory profile lists for NAP conflicts or duplicate listings.',
+    frequency: 'DAILY',
+    status: 'ACTIVE',
+    lastRun: '2026-07-23T01:00:00Z',
+    locationId: 'loc-1',
+  },
+  {
+    id: 'auto-3',
+    name: 'AI Review Replies Broadcast',
+    description: 'Automatically publish AI-generated replies to new positive reviews.',
+    frequency: 'DAILY',
+    status: 'PAUSED',
+    lastRun: '2026-07-23T02:00:00Z',
+    locationId: 'loc-1',
+  },
+  {
+    id: 'auto-4',
+    name: 'Keyword Tracking Rank Checks',
+    description: 'Query search engine local pack positions and log volatility index.',
+    frequency: 'DAILY',
+    status: 'ACTIVE',
+    lastRun: '2026-07-23T00:00:00Z',
+    locationId: 'loc-1',
+  },
+  {
+    id: 'auto-5',
+    name: 'Competitor Change Monitoring',
+    description: 'Scan rival search visibility shifts and review volume speed updates.',
+    frequency: 'WEEKLY',
+    status: 'PAUSED',
+    lastRun: '2026-07-20T12:00:00Z',
+    locationId: 'loc-1',
+  },
+  {
+    id: 'auto-6',
+    name: 'GBP Posting Campaign Scheduler',
+    description: 'Automatically schedule promotional discount posts on active profiles.',
+    frequency: 'WEEKLY',
+    status: 'ACTIVE',
+    lastRun: '2026-07-21T09:00:00Z',
+    locationId: 'loc-1',
+  },
+  {
+    id: 'auto-7',
+    name: 'Reports Compilation & Export',
+    description: 'Generate white-label PDF/CSV dashboards and email to client lists.',
+    frequency: 'MONTHLY',
+    status: 'ACTIVE',
+    lastRun: '2026-07-01T00:00:00Z',
+    locationId: 'loc-1',
+  },
+  {
+    id: 'auto-8',
+    name: 'Alerts & GBP Suspension Notifications',
+    description: 'Send high-priority warnings via SMTP/Slack if profile health drops.',
+    frequency: 'DAILY',
+    status: 'ACTIVE',
+    lastRun: '2026-07-23T02:15:00Z',
+    locationId: 'loc-1',
+  },
+
+  // Location 2 (loc-2)
+  {
+    id: 'auto-1',
+    name: 'Scheduled Site Audits',
+    description: 'Crawl landing pages for heading status, schema validations, and link health.',
+    frequency: 'WEEKLY',
+    status: 'ACTIVE',
+    lastRun: '2026-07-22T08:00:00Z',
+    locationId: 'loc-2',
+  },
+  {
+    id: 'auto-2',
+    name: 'Citation Consistency Monitoring',
+    description: 'Audit directory profile lists for NAP conflicts or duplicate listings.',
+    frequency: 'DAILY',
+    status: 'ACTIVE',
+    lastRun: '2026-07-23T01:00:00Z',
+    locationId: 'loc-2',
+  },
+  {
+    id: 'auto-3',
+    name: 'AI Review Replies Broadcast',
+    description: 'Automatically publish AI-generated replies to new positive reviews.',
+    frequency: 'DAILY',
+    status: 'PAUSED',
+    lastRun: '2026-07-23T02:00:00Z',
+    locationId: 'loc-2',
+  },
+  {
+    id: 'auto-4',
+    name: 'Keyword Tracking Rank Checks',
+    description: 'Query search engine local pack positions and log volatility index.',
+    frequency: 'DAILY',
+    status: 'ACTIVE',
+    lastRun: '2026-07-23T00:00:00Z',
+    locationId: 'loc-2',
+  },
+  {
+    id: 'auto-5',
+    name: 'Competitor Change Monitoring',
+    description: 'Scan rival search visibility shifts and review volume speed updates.',
+    frequency: 'WEEKLY',
+    status: 'PAUSED',
+    lastRun: '2026-07-20T12:00:00Z',
+    locationId: 'loc-2',
+  },
+  {
+    id: 'auto-6',
+    name: 'GBP Posting Campaign Scheduler',
+    description: 'Automatically schedule promotional discount posts on active profiles.',
+    frequency: 'WEEKLY',
+    status: 'ACTIVE',
+    lastRun: '2026-07-21T09:00:00Z',
+    locationId: 'loc-2',
+  },
+  {
+    id: 'auto-7',
+    name: 'Reports Compilation & Export',
+    description: 'Generate white-label PDF/CSV dashboards and email to client lists.',
+    frequency: 'MONTHLY',
+    status: 'ACTIVE',
+    lastRun: '2026-07-01T00:00:00Z',
+    locationId: 'loc-2',
+  },
+  {
+    id: 'auto-8',
+    name: 'Alerts & GBP Suspension Notifications',
+    description: 'Send high-priority warnings via SMTP/Slack if profile health drops.',
+    frequency: 'DAILY',
+    status: 'ACTIVE',
+    lastRun: '2026-07-23T02:15:00Z',
+    locationId: 'loc-2',
+  },
 ];
+
 
 export const INITIAL_API_KEYS: ApiKey[] = [
   {
@@ -423,3 +562,53 @@ export const INITIAL_WHITE_LABEL: WhiteLabelSettings = {
   logoUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150',
   organizationId: 'org-agency-1',
 };
+
+import { AiPrompt, AuditLog } from './types';
+
+export const INITIAL_AI_PROMPTS: AiPrompt[] = [
+  {
+    id: 'prompt-reply',
+    name: 'Review Reply Assistant',
+    description: 'Generates polite, professional responses to customer reviews incorporating local search keywords.',
+    template: 'You are a customer relationship assistant for {businessName}. Draft a warm, professional response to a {rating}-star review from {reviewerName} containing feedback: "{reviewText}". Incorporate localized SEO phrases when natural, but prioritize customer service. Keep it concise.',
+    lastUpdated: '2026-07-15T12:00:00Z'
+  },
+  {
+    id: 'prompt-diag',
+    name: 'SEO Diagnostic Analyst',
+    description: 'Analyzes citation errors, ranking drops, and site speed to draft actionable step-by-step optimization recommendations.',
+    template: 'Analyze the following business metrics for {businessName}: Citations NAP Accuracy: {citationScore}%, Unanswered Reviews: {unansweredReviews}, PageSpeed Score: {pageSpeedScore}. Outline the top 3 highest impact recommendations with estimated time limits.',
+    lastUpdated: '2026-07-18T15:30:00Z'
+  }
+];
+
+export const INITIAL_AUDIT_LOGS: AuditLog[] = [
+  {
+    id: 'log-1',
+    timestamp: '2026-07-23T19:40:00Z',
+    userId: 'usr-1',
+    userName: 'Alex Rivera',
+    action: 'USER_LOGIN',
+    details: 'Successful login. Session initialized with JWT token authorization.',
+    ipAddress: '192.168.1.45'
+  },
+  {
+    id: 'log-2',
+    timestamp: '2026-07-23T20:15:00Z',
+    userId: 'usr-1',
+    userName: 'Alex Rivera',
+    action: 'CONNECT_INTEGRATION',
+    details: 'Connected Google Business Profile for "Downtown Dental - Central Austin" (loc-1).',
+    ipAddress: '192.168.1.45'
+  },
+  {
+    id: 'log-3',
+    timestamp: '2026-07-23T20:45:00Z',
+    userId: 'usr-1',
+    userName: 'Alex Rivera',
+    action: 'SECURITY_CHECK',
+    details: 'API credentials rotated for organization "Apex Local Marketing Agency" (org-agency-1).',
+    ipAddress: '192.168.1.45'
+  }
+];
+

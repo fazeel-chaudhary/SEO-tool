@@ -25,8 +25,9 @@ export default function WebsiteAuditPage() {
 
   useEffect(() => {
     if (activeLocation) {
-      const res = WebsiteAuditService.runWebsiteAudit(activeLocation);
-      setAudit(res);
+      WebsiteAuditService.runWebsiteAudit(activeLocation).then((res) => {
+        setAudit(res);
+      });
     }
   }, [activeLocation]);
 
@@ -40,12 +41,17 @@ export default function WebsiteAuditPage() {
     );
   }
 
-  const handleReRunAudit = () => {
+  const handleReRunAudit = async () => {
     setIsAuditing(true);
-    const res = WebsiteAuditService.runWebsiteAudit(activeLocation);
-    setAudit(res);
-    refreshState();
-    setTimeout(() => setIsAuditing(false), 800);
+    try {
+      const res = await WebsiteAuditService.runWebsiteAudit(activeLocation);
+      setAudit(res);
+      refreshState();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsAuditing(false);
+    }
   };
 
   return (

@@ -7,29 +7,33 @@ export class RankTrackerService {
    * Leverages SerpApi / DataForSEO or intelligent local grid fallback.
    */
   static async checkKeywordRank(keyword: Keyword): Promise<RankingSnapshot> {
-    const serpApiKey = process.env.SERP_API_KEY;
     let mapPosition: number | null = null;
     let organicPosition: number | null = null;
 
-    if (serpApiKey) {
-      try {
-        // Example SerpApi integration pattern for Google Maps Local Pack
-        const query = encodeURIComponent(`${keyword.term} ${keyword.city}`);
-        const response = await fetch(
-          `https://serpapi.com/search.json?engine=google_maps&q=${query}&api_key=${serpApiKey}`
-        );
-        const data = await response.json();
+    try {
+      const response = await fetch('/api/v1/rank-check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          term: keyword.term,
+          city: keyword.city,
+        }),
+      });
 
-        if (data.local_results && data.local_results.length > 0) {
-          mapPosition = 1; // Top 3 local pack result
-        } else {
-          mapPosition = Math.floor(Math.random() * 15) + 4;
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === 'success') {
+          mapPosition = data.position;
+          organicPosition = data.organicPosition;
         }
-      } catch (err) {
-        console.warn('SerpApi check fallback:', err);
-        mapPosition = Math.floor(Math.random() * 8) + 1;
       }
-    } else {
+    } catch (err) {
+      console.warn('Backend rank-check query failure, falling back to mock:', err);
+    }
+
+    if (mapPosition === null) {
       // Deterministic & realistic mock rank checking for demonstration
       const randomRankChange = Math.floor(Math.random() * 3) - 1; // -1, 0, or +1
       const currentRank = keyword.latestRank || Math.floor(Math.random() * 10) + 1;

@@ -31,7 +31,7 @@ export default function AssistantPage() {
     );
   }
 
-  const handleSend = (textToSend?: string) => {
+  const handleSend = async (textToSend?: string) => {
     const query = textToSend || inputQuery;
     if (!query.trim()) return;
 
@@ -47,8 +47,8 @@ export default function AssistantPage() {
     if (!textToSend) setInputQuery('');
 
     // AI Response reasoning
-    setTimeout(() => {
-      const aiReplyText = AiAssistantService.answerUserQuery(activeLocation, query);
+    try {
+      const aiReplyText = await AiAssistantService.answerUserQuery(activeLocation, query);
       const aiMsg: ChatMessage = {
         id: `msg-ai-${Date.now()}`,
         role: 'assistant',
@@ -56,7 +56,9 @@ export default function AssistantPage() {
         timestamp: new Date().toISOString(),
       };
       setMessages([...newHistory, aiMsg]);
-    }, 400);
+    } catch (err) {
+      console.error('AI query call failure:', err);
+    }
   };
 
   const samplePrompts = [

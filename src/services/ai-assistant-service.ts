@@ -9,7 +9,26 @@ export class AiAssistantService {
    * Data-backed AI assistant reasoning engine.
    * Retrieves live metrics across GBP, rankings, citations, reviews, and competitors to formulate targeted responses.
    */
-  static answerUserQuery(location: Location, query: string): string {
+  static async answerUserQuery(location: Location, query: string): Promise<string> {
+    try {
+      const response = await fetch('/api/v1/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query, location }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === 'success' && data.answer) {
+          return data.answer;
+        }
+      }
+    } catch (err) {
+      console.warn('Live AI router query failed, falling back to local reasoning:', err);
+    }
+
     const qLower = query.toLowerCase();
 
     // Data Snapshots
