@@ -5,6 +5,7 @@ import { useOrg } from '@/context/org-context';
 import { AppStore } from '@/services/store';
 import { GbpService } from '@/services/gbp-service';
 import { Location } from '@/lib/types';
+import { POLAR_PLANS } from '@/lib/polar';
 import {
   MapPin,
   Plus,
@@ -26,6 +27,7 @@ import {
   X,
   FileText,
   Send,
+  CreditCard,
 } from 'lucide-react';
 
 interface FAQ {
@@ -46,6 +48,42 @@ export default function LocationsPage() {
   const [selectedLoc, setSelectedLoc] = useState<Location | null>(null);
   const [activeTab, setActiveTab] = useState<'INFO' | 'HOURS_SERVICES' | 'PRODUCTS' | 'FAQS_ATTRS'>('INFO');
   const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [limitError, setLimitError] = useState<string | null>(null);
+
+  // Bulk Post Modal State
+  const [showBulkPostModal, setShowBulkPostModal] = useState(false);
+  const [bulkPostTitle, setBulkPostTitle] = useState('');
+  const [bulkPostBody, setBulkPostBody] = useState('');
+  const [bulkPostType, setBulkPostType] = useState<'UPDATE' | 'OFFER' | 'EVENT'>('UPDATE');
+  const [bulkPostCta, setBulkPostCta] = useState('LEARN_MORE');
+  const [bulkPostCoupon, setBulkPostCoupon] = useState('');
+  const [bulkPostExpiry, setBulkPostExpiry] = useState('');
+  const [bulkPostSelected, setBulkPostSelected] = useState<string[]>([]);
+  const [bulkPostSuccess, setBulkPostSuccess] = useState<string | null>(null);
+
+  // Bulk Hours Modal State
+  const [showBulkHoursModal, setShowBulkHoursModal] = useState(false);
+  const [bulkHours, setBulkHours] = useState({ mon: '8:00 AM - 8:00 PM', tue: '8:00 AM - 8:00 PM', wed: '8:00 AM - 8:00 PM', thu: '8:00 AM - 8:00 PM', fri: '8:00 AM - 8:00 PM', sat: '9:00 AM - 5:00 PM', sun: 'Closed' });
+  const [bulkHoursSelected, setBulkHoursSelected] = useState<string[]>([]);
+  const [bulkHoursSuccess, setBulkHoursSuccess] = useState<string | null>(null);
+
+  // Plan limit helper
+  const getPlanLimit = (): number => {
+    if (!activeOrg) return 3;
+    const plan = activeOrg.plan;
+    if (plan === 'TRIAL') return 3;
+    const planMap: Record<string, number> = {
+      plan_starter_business: POLAR_PLANS.STARTER_BUSINESS.locationsAllowed,
+      plan_agency_growth: POLAR_PLANS.AGENCY_GROWTH.locationsAllowed,
+      plan_agency_scale: POLAR_PLANS.AGENCY_SCALE.locationsAllowed,
+      STARTER: POLAR_PLANS.STARTER_BUSINESS.locationsAllowed,
+      AGENCY: POLAR_PLANS.AGENCY_GROWTH.locationsAllowed,
+      ENTERPRISE: POLAR_PLANS.AGENCY_SCALE.locationsAllowed,
+    };
+    return planMap[plan as string] ?? 3;
+  };
+
+  const planLimit = getPlanLimit();
 
   // Add Form State
   const [formData, setFormData] = useState({
@@ -88,6 +126,14 @@ export default function LocationsPage() {
   const handleAddLocation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeOrg) return;
+    setLimitError(null);
+
+    // Enforce plan-based location limit
+    if (locations.length >= planLimit) {
+      setLimitError(`Your current plan allows up to ${planLimit} location${planLimit === 1 ? '' : 's'}. Please upgrade your plan to add more.`);
+      setShowAddModal(false);
+      return;
+    }
 
     const newLoc: Location = {
       id: `loc-${Date.now()}`,
@@ -119,6 +165,41 @@ export default function LocationsPage() {
       website: '',
       category: '',
     });
+  };
+
+  // Bulk Post handlers
+  const openBulkPostModal = () => {
+    setBulkPostSelected(locations.map((l) => l.id));
+    setBulkPostSuccess(null);
+    setShowBulkPostModal(true);
+  };
+  const toggleBulkPostLocation = (id: string) => {
+    setBulkPostSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+  const handleBulkPostPublish = () => {
+    if (!bulkPostTitle.trim() || !bulkPostBody.trim()) return;
+    const count = bulkPostSelected.length;
+    setBulkPostSuccess(`Published "${bulkPostTitle}" to ${count} business profile${count !== 1 ? 's' : ''}!`);
+    setTimeout(() => { setShowBulkPostModal(false); setBulkPostSuccess(null); setBulkPostTitle(''); setBulkPostBody(''); }, 2000);
+  };
+
+  // Bulk Hours handlers
+  const openBulkHoursModal = () => {
+    setBulkHoursSelected(locations.map((l) => l.id));
+    setBulkHoursSuccess(null);
+    setShowBulkHoursModal(true);
+  };
+  const toggleBulkHoursLocation = (id: string) => {
+    setBulkHoursSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+  const handleBulkHoursPush = () => {
+    const count = bulkHoursSelected.length;
+    setBulkHoursSuccess(`Business hours pushed to ${count} profile${count !== 1 ? 's' : ''}!`);
+    setTimeout(() => { setShowBulkHoursModal(false); setBulkHoursSuccess(null); }, 2000);
   };
 
   const handleOpenEdit = (loc: Location) => {
@@ -295,63 +376,89 @@ export default function LocationsPage() {
         </div>
 
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => {
+            if (locations.length >= planLimit) {
+              setLimitError(`Your plan allows up to ${planLimit} location${planLimit === 1 ? '' : 's'}. Upgrade to add more.`);
+            } else {
+              setLimitError(null);
+              setShowAddModal(true);
+            }
+          }}
           className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm shadow-brand-600/20 active:scale-95 self-start sm:self-auto"
           id="add-location-btn"
         >
           <Plus className="w-4 h-4" />
-          <span>Add New Location</span>
+          <span>Add New Location ({locations.length}/{planLimit})</span>
         </button>
       </div>
+
+      {/* Plan Limit Error Banner */}
+      {limitError && (
+        <div className="p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-2xl flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+            <p className="text-xs font-semibold text-red-700 dark:text-red-300">{limitError}</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <a href="/billing" className="flex items-center space-x-1 text-xs font-bold bg-brand-600 text-white px-3 py-1.5 rounded-lg hover:bg-brand-700">
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>Upgrade Plan</span>
+            </a>
+            <button onClick={() => setLimitError(null)} className="text-red-400 hover:text-red-600">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Bulk Multi-Location SEO Actions Manager */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
         <h3 className="font-extrabold text-slate-900 dark:text-white text-base flex items-center">
           <Sliders className="w-5 h-5 mr-2 text-brand-600 dark:text-brand-400" />
-          Bulk Multi-Location SEO Manager (Scale Actions)
+          Bulk Multi-Location SEO Manager
         </h3>
-        <p className="text-xs text-slate-500 leading-relaxed">
-          Scale your Local SEO configurations. Perform instant edits, updates, media uploads, and reports generation across all **{locations.length}** active locations in your tenant organization.
+        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+          Scale your Local SEO actions across all <span className="font-bold text-slate-700 dark:text-slate-300">{locations.length} active location{locations.length !== 1 ? 's' : ''}</span>. Push updates, posts, hours, and reports in one click.
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-1">
           <button
-            onClick={() => alert(`Bulk Hours Update: Pushed 'Mon-Sun: 8:00 AM - 8:00 PM' to all ${locations.length} connected Google Business Profiles!`)}
-            className="p-3 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-750 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs space-y-1.5 transition-colors"
+            onClick={openBulkHoursModal}
+            className="p-3 bg-slate-50 dark:bg-slate-800/60 hover:bg-brand-50 dark:hover:bg-brand-950/30 hover:border-brand-300 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs space-y-1.5 transition-all"
           >
             <Clock className="w-4 h-4 mx-auto text-brand-600" />
-            <span className="block text-slate-800 dark:text-slate-250">Bulk Hours</span>
+            <span className="block text-slate-800 dark:text-slate-200">Bulk Hours</span>
           </button>
 
           <button
-            onClick={() => alert(`Bulk GBP Posts Broadcast: Created and broadcasted a promotional Google post template to all ${locations.length} connected listing panels!`)}
-            className="p-3 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-750 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs space-y-1.5 transition-colors"
+            onClick={openBulkPostModal}
+            className="p-3 bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:border-indigo-300 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs space-y-1.5 transition-all"
           >
             <Send className="w-4 h-4 mx-auto text-indigo-500" />
-            <span className="block text-slate-800 dark:text-slate-250">Bulk Posts</span>
+            <span className="block text-slate-800 dark:text-slate-200">Bulk Posts</span>
           </button>
 
           <button
-            onClick={() => alert(`Bulk Logo/Images Upload: Uploaded clinical branding logo files to all ${locations.length} locations!`)}
-            className="p-3 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-750 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs space-y-1.5 transition-colors"
+            onClick={() => alert(`Bulk Logo/Images Upload: Uploaded branding files to all ${locations.length} locations!`)}
+            className="p-3 bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:border-emerald-300 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs space-y-1.5 transition-all"
           >
             <ImageIcon className="w-4 h-4 mx-auto text-emerald-500" />
-            <span className="block text-slate-800 dark:text-slate-250">Bulk Images</span>
+            <span className="block text-slate-800 dark:text-slate-200">Bulk Images</span>
           </button>
 
           <button
-            onClick={() => alert(`Bulk FAQ push: Synced standard clinic policy FAQs to all ${locations.length} location landing pages!`)}
-            className="p-3 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-750 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs space-y-1.5 transition-colors"
+            onClick={() => alert(`Bulk FAQ push: Synced standard FAQs to all ${locations.length} location landing pages!`)}
+            className="p-3 bg-slate-50 dark:bg-slate-800/60 hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:border-amber-300 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs space-y-1.5 transition-all"
           >
             <HelpCircle className="w-4 h-4 mx-auto text-amber-500" />
-            <span className="block text-slate-800 dark:text-slate-250">Bulk FAQs</span>
+            <span className="block text-slate-800 dark:text-slate-200">Bulk FAQs</span>
           </button>
 
           <button
-            onClick={() => alert(`Bulk Multi-Location Reporting: Compiling Google Sheets/CSV export ranking profiles for all ${locations.length} locations...`)}
-            className="p-3 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-750 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs space-y-1.5 transition-colors col-span-2 sm:col-span-1"
+            onClick={() => alert(`Bulk Reporting: Compiling CSV export for all ${locations.length} locations...`)}
+            className="p-3 bg-slate-50 dark:bg-slate-800/60 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:border-rose-300 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs space-y-1.5 transition-all col-span-2 sm:col-span-1"
           >
             <FileText className="w-4 h-4 mx-auto text-rose-500" />
-            <span className="block text-slate-800 dark:text-slate-250">Bulk Reports</span>
+            <span className="block text-slate-800 dark:text-slate-200">Bulk Reports</span>
           </button>
         </div>
       </div>
@@ -1043,6 +1150,181 @@ export default function LocationsPage() {
           </div>
         </div>
       )}
+
+      {/* ═══ BULK POST MODAL ═══ */}
+      {showBulkPostModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg flex items-center">
+                  <Send className="w-5 h-5 mr-2 text-indigo-500" />
+                  Bulk GBP Posts
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Create a post and publish to selected business profiles</p>
+              </div>
+              <button onClick={() => setShowBulkPostModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X className="w-5 h-5" /></button>
+            </div>
+
+            {bulkPostSuccess ? (
+              <div className="text-center py-8 space-y-3">
+                <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
+                <p className="font-bold text-slate-800 dark:text-white text-sm">{bulkPostSuccess}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Post Type</label>
+                  <div className="flex space-x-2">
+                    {(['UPDATE', 'OFFER', 'EVENT'] as const).map((t) => (
+                      <button key={t} onClick={() => setBulkPostType(t)} className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${bulkPostType === t ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}>
+                        {t === 'UPDATE' ? 'Update' : t === 'OFFER' ? 'Offer / Promo' : 'Event'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Post Title / Headline *</label>
+                  <input value={bulkPostTitle} onChange={(e) => setBulkPostTitle(e.target.value)} placeholder="e.g. Summer Sale — 20% Off All Services" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Post Body *</label>
+                  <textarea value={bulkPostBody} onChange={(e) => setBulkPostBody(e.target.value)} rows={3} placeholder="Write your post content here..." className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+                </div>
+                {bulkPostType === 'OFFER' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Coupon Code</label>
+                      <input value={bulkPostCoupon} onChange={(e) => setBulkPostCoupon(e.target.value)} placeholder="e.g. SUMMER20" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Expiry Date</label>
+                      <input type="date" value={bulkPostExpiry} onChange={(e) => setBulkPostExpiry(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Call-to-Action Button</label>
+                  <select value={bulkPostCta} onChange={(e) => setBulkPostCta(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="LEARN_MORE">Learn More</option>
+                    <option value="BOOK">Book</option>
+                    <option value="CALL">Call Now</option>
+                    <option value="SIGN_UP">Sign Up</option>
+                    <option value="BUY">Buy</option>
+                    <option value="GET_OFFER">Get Offer</option>
+                  </select>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Publish To ({bulkPostSelected.length}/{locations.length} profiles)</label>
+                    <div className="flex space-x-2">
+                      <button onClick={() => setBulkPostSelected(locations.map((l) => l.id))} className="text-[10px] font-bold text-brand-600 hover:underline">Select All</button>
+                      <span className="text-slate-300 dark:text-slate-600">|</span>
+                      <button onClick={() => setBulkPostSelected([])} className="text-[10px] font-bold text-slate-500 hover:underline">Deselect All</button>
+                    </div>
+                  </div>
+                  <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                    {locations.map((loc) => (
+                      <label key={loc.id} className="flex items-center space-x-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-indigo-400 transition-all">
+                        <input type="checkbox" checked={bulkPostSelected.includes(loc.id)} onChange={() => toggleBulkPostLocation(loc.id)} className="w-4 h-4 rounded accent-indigo-600" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-slate-800 dark:text-white truncate">{loc.name}</p>
+                          <p className="text-[10px] text-slate-500 truncate">{loc.city}, {loc.state}</p>
+                        </div>
+                        {loc.gbpConnected && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex space-x-2 pt-1">
+                  <button onClick={() => setShowBulkPostModal(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs">Cancel</button>
+                  <button onClick={handleBulkPostPublish} disabled={!bulkPostTitle.trim() || !bulkPostBody.trim() || bulkPostSelected.length === 0} className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center space-x-1.5 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-indigo-600/20">
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Publish to {bulkPostSelected.length} Profile{bulkPostSelected.length !== 1 ? 's' : ''}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ BULK HOURS MODAL ═══ */}
+      {showBulkHoursModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg flex items-center">
+                  <Clock className="w-5 h-5 mr-2 text-brand-600" />
+                  Bulk Business Hours Update
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Set hours and push to selected business profiles</p>
+              </div>
+              <button onClick={() => setShowBulkHoursModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X className="w-5 h-5" /></button>
+            </div>
+
+            {bulkHoursSuccess ? (
+              <div className="text-center py-8 space-y-3">
+                <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
+                <p className="font-bold text-slate-800 dark:text-white text-sm">{bulkHoursSuccess}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 block">Business Hours per Day</label>
+                  <div className="space-y-2">
+                    {([
+                      { key: 'mon', label: 'Monday' },
+                      { key: 'tue', label: 'Tuesday' },
+                      { key: 'wed', label: 'Wednesday' },
+                      { key: 'thu', label: 'Thursday' },
+                      { key: 'fri', label: 'Friday' },
+                      { key: 'sat', label: 'Saturday' },
+                      { key: 'sun', label: 'Sunday' },
+                    ] as { key: keyof typeof bulkHours; label: string }[]).map(({ key, label }) => (
+                      <div key={key} className="flex items-center space-x-3">
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 w-20 shrink-0">{label}</span>
+                        <input value={bulkHours[key]} onChange={(e) => setBulkHours((prev) => ({ ...prev, [key]: e.target.value }))} placeholder="e.g. 8:00 AM - 6:00 PM or Closed" className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Push To ({bulkHoursSelected.length}/{locations.length} profiles)</label>
+                    <div className="flex space-x-2">
+                      <button onClick={() => setBulkHoursSelected(locations.map((l) => l.id))} className="text-[10px] font-bold text-brand-600 hover:underline">Select All</button>
+                      <span className="text-slate-300 dark:text-slate-600">|</span>
+                      <button onClick={() => setBulkHoursSelected([])} className="text-[10px] font-bold text-slate-500 hover:underline">Deselect All</button>
+                    </div>
+                  </div>
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                    {locations.map((loc) => (
+                      <label key={loc.id} className="flex items-center space-x-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-brand-400 transition-all">
+                        <input type="checkbox" checked={bulkHoursSelected.includes(loc.id)} onChange={() => toggleBulkHoursLocation(loc.id)} className="w-4 h-4 rounded accent-orange-500" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-slate-800 dark:text-white truncate">{loc.name}</p>
+                          <p className="text-[10px] text-slate-500 truncate">{loc.city}, {loc.state}</p>
+                        </div>
+                        {loc.gbpConnected && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex space-x-2 pt-1">
+                  <button onClick={() => setShowBulkHoursModal(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs">Cancel</button>
+                  <button onClick={handleBulkHoursPush} disabled={bulkHoursSelected.length === 0} className="flex-1 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs flex items-center justify-center space-x-1.5 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-brand-600/20">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Push to {bulkHoursSelected.length} Profile{bulkHoursSelected.length !== 1 ? 's' : ''}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

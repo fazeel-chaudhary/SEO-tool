@@ -70,11 +70,19 @@ const STORAGE_KEYS = {
   AI_PROMPTS: 'seo_os_ai_prompts',
 };
 
+const memCache: Record<string, any> = {};
+
 function getStored<T>(key: string, fallback: T): T {
+  if (key in memCache) {
+    return memCache[key];
+  }
+
   if (typeof window === 'undefined') return fallback;
   try {
     const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : fallback;
+    const parsed = item ? JSON.parse(item) : fallback;
+    memCache[key] = parsed;
+    return parsed;
   } catch (e) {
     console.error(`Error reading ${key} from localStorage`, e);
     return fallback;
@@ -82,6 +90,7 @@ function getStored<T>(key: string, fallback: T): T {
 }
 
 function setStored<T>(key: string, value: T): void {
+  memCache[key] = value;
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(key, JSON.stringify(value));

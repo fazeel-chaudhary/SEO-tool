@@ -14,16 +14,47 @@ export default function BillingPage() {
   const [selectedPlanForModal, setSelectedPlanForModal] = useState<PlanType | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+  const [cardName, setCardName] = useState('');
 
   const activePlanObj = Object.values(POLAR_PLANS).find((p) => p.id === currentPlanId) || POLAR_PLANS.AGENCY_GROWTH;
 
   const handleSelectCard = (plan: PlanType) => {
     if (plan.id === currentPlanId) return;
+    setPaymentError(null);
+    setCardNumber('');
+    setCardExpiry('');
+    setCardCvv('');
+    setCardName('');
     setSelectedPlanForModal(plan);
   };
 
   const handleConfirmPlanChange = () => {
     if (!selectedPlanForModal || !activeOrg) return;
+
+    // Payment validation
+    const rawCard = cardNumber.replace(/\s/g, '');
+    if (!cardName.trim()) {
+      setPaymentError('Please enter the cardholder name.');
+      return;
+    }
+    if (rawCard.length < 16) {
+      setPaymentError('Please enter a valid 16-digit card number.');
+      return;
+    }
+    if (!cardExpiry.match(/^(0[1-9]|1[0-2])\/\d{2}$/)) {
+      setPaymentError('Please enter a valid expiry date (MM/YY).');
+      return;
+    }
+    if (cardCvv.length < 3) {
+      setPaymentError('Please enter a valid CVV (3 or 4 digits).');
+      return;
+    }
+
+    setPaymentError(null);
     setIsProcessing(true);
 
     setTimeout(() => {
@@ -33,7 +64,6 @@ export default function BillingPage() {
 
       setSuccessMessage(`Successfully updated to the ${selectedPlanForModal.name} Plan!`);
 
-      // Trigger notification log
       AppStore.saveNotification({
         id: `notif-bill-${Date.now()}`,
         type: 'AUTOMATION',
@@ -47,7 +77,7 @@ export default function BillingPage() {
 
       refreshState();
       setTimeout(() => setSuccessMessage(null), 4000);
-    }, 600);
+    }, 800);
   };
 
   return (
@@ -70,20 +100,20 @@ export default function BillingPage() {
       )}
 
       {/* Current Plan Overview Banner */}
-      <div className="bg-gradient-to-r from-brand-600 to-indigo-700 text-white rounded-3xl p-6 md:p-8 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-brand-600 text-white rounded-3xl p-6 md:p-8 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">
           <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full">
             Current Subscription
           </span>
           <h2 className="text-2xl md:text-3xl font-black">{activePlanObj.name} Plan</h2>
-          <p className="text-xs text-blue-100 max-w-lg leading-relaxed">
+          <p className="text-xs text-orange-100 max-w-lg leading-relaxed">
             Includes {activePlanObj.locationsAllowed} Business Locations, {activePlanObj.keywordsAllowed} Tracked Keywords, Geo-Grid Heatmaps, and Automated GBP Audits.
           </p>
         </div>
 
         <div className="text-left md:text-right shrink-0">
           <div className="text-3xl md:text-4xl font-black">{activePlanObj.price}</div>
-          <span className="text-xs text-blue-100">Billed monthly • Active Status</span>
+          <span className="text-xs text-orange-100">Billed monthly • Active Status</span>
         </div>
       </div>
 
@@ -176,20 +206,21 @@ export default function BillingPage() {
       {/* Plan Change Confirmation Modal */}
       {selectedPlanForModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center">
                 <Zap className="w-5 h-5 mr-2 text-brand-500" />
                 Confirm Plan Switch
               </h2>
               <button
-                onClick={() => setSelectedPlanForModal(null)}
+                onClick={() => { setSelectedPlanForModal(null); setPaymentError(null); }}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-bold p-1"
               >
                 ✕
               </button>
             </div>
 
+            {/* Plan Summary */}
             <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl space-y-2 border border-slate-200 dark:border-slate-700 text-xs">
               <div className="flex justify-between font-bold text-slate-900 dark:text-white text-sm">
                 <span>Selected Plan:</span>
@@ -209,10 +240,92 @@ export default function BillingPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end space-x-3 pt-2">
+            {/* Payment Error Banner */}
+            {paymentError && (
+              <div className="flex items-center space-x-2.5 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl">
+                <Shield className="w-4 h-4 text-red-500 shrink-0" />
+                <p className="text-xs font-semibold text-red-700 dark:text-red-300">{paymentError}</p>
+              </div>
+            )}
+
+            {/* Payment Details Form */}
+            <div className="space-y-3">
+              <p className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center">
+                <CreditCard className="w-3.5 h-3.5 mr-1.5 text-brand-500" />
+                Payment Details
+              </p>
+
+              {/* Cardholder Name */}
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 block">Cardholder Name</label>
+                <input
+                  type="text"
+                  value={cardName}
+                  onChange={(e) => { setCardName(e.target.value); setPaymentError(null); }}
+                  placeholder="John Smith"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* Card Number */}
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 block">Card Number</label>
+                <input
+                  type="text"
+                  value={cardNumber}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
+                    const formatted = raw.replace(/(\d{4})(?=\d)/g, '$1 ');
+                    setCardNumber(formatted);
+                    setPaymentError(null);
+                  }}
+                  placeholder="1234 5678 9012 3456"
+                  maxLength={19}
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-slate-400 font-mono tracking-widest"
+                />
+              </div>
+
+              {/* Expiry + CVV */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 block">Expiry (MM/YY)</label>
+                  <input
+                    type="text"
+                    value={cardExpiry}
+                    onChange={(e) => {
+                      let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+                      if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2);
+                      setCardExpiry(v);
+                      setPaymentError(null);
+                    }}
+                    placeholder="MM/YY"
+                    maxLength={5}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-slate-400 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 block">CVV</label>
+                  <input
+                    type="password"
+                    value={cardCvv}
+                    onChange={(e) => { setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4)); setPaymentError(null); }}
+                    placeholder="•••"
+                    maxLength={4}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-slate-400 font-mono"
+                  />
+                </div>
+              </div>
+
+              <p className="text-[10px] text-slate-400 flex items-center">
+                <Shield className="w-3 h-3 mr-1 text-emerald-500" />
+                Secured with 256-bit SSL encryption. Your card is never stored.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 pt-1">
               <button
                 type="button"
-                onClick={() => setSelectedPlanForModal(null)}
+                onClick={() => { setSelectedPlanForModal(null); setPaymentError(null); }}
                 className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold"
               >
                 Cancel
@@ -221,10 +334,14 @@ export default function BillingPage() {
                 type="button"
                 onClick={handleConfirmPlanChange}
                 disabled={isProcessing}
-                className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-600/20 flex items-center space-x-2"
+                className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-600/20 flex items-center space-x-2 disabled:opacity-60"
                 id="confirm-plan-change-btn"
               >
-                <span>{isProcessing ? 'Updating Subscription...' : 'Confirm & Switch Plan'}</span>
+                {isProcessing ? (
+                  <><Zap className="w-3.5 h-3.5 animate-pulse" /><span>Processing Payment...</span></>
+                ) : (
+                  <><CreditCard className="w-3.5 h-3.5" /><span>Pay &amp; Activate Plan</span></>
+                )}
               </button>
             </div>
           </div>

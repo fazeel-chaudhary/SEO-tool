@@ -30,23 +30,40 @@ export class AuthService {
 
   static getCurrentAuth(): AuthState {
     const token = this.getAuthToken();
-    const orgs = AppStore.getOrganizations();
-    const activeOrgId = AppStore.getActiveOrgId();
-    const activeOrg = orgs.find((o) => o.id === activeOrgId) || orgs[0] || null;
-
-    if (!token) {
+    if (!token || !token.startsWith('token_')) {
       return { user: null, organization: null, isAuthenticated: false };
     }
 
-    const user = activeOrg?.users?.[0] || null;
-    return {
-      user,
-      organization: activeOrg,
-      isAuthenticated: !!token && !!user,
-    };
+    const parts = token.split('_');
+    const userId = parts[1];
+    if (!userId) {
+      return { user: null, organization: null, isAuthenticated: false };
+    }
+
+    const orgs = AppStore.getOrganizations();
+    for (const org of orgs) {
+      const foundUser = org.users.find((u) => u.id === userId);
+      if (foundUser) {
+        return {
+          user: foundUser,
+          organization: org,
+          isAuthenticated: true,
+        };
+      }
+    }
+
+    return { user: null, organization: null, isAuthenticated: false };
   }
 
   static login(email: string, pass: string): { success: boolean; message: string; user?: User } {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return {
+        success: false,
+        message: 'Please enter a valid, authentic email address.'
+      };
+    }
+
     const orgs = AppStore.getOrganizations();
     
     // Find matching registered user across organizations
@@ -74,6 +91,28 @@ export class AuthService {
   }
 
   static register(name: string, email: string, pass: string, orgName: string): { success: boolean; message: string; user?: User } {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return {
+        success: false,
+        message: 'Please enter a valid, authentic email address.'
+      };
+    }
+
+    // Check if user email is already registered
+    const orgs = AppStore.getOrganizations();
+    for (const org of orgs) {
+      const foundUser = org.users.find(
+        (u) => u.email.toLowerCase() === email.toLowerCase()
+      );
+      if (foundUser) {
+        return {
+          success: false,
+          message: 'An account with this email address already exists. Please log in or choose a different email.',
+        };
+      }
+    }
+
     const newOrgId = `org-${Date.now()}`;
     const newUserId = `user-${Date.now()}`;
 
@@ -97,7 +136,7 @@ export class AuthService {
 
     AppStore.saveOrganization(newOrg);
     AppStore.setActiveOrgId(newOrg.id);
-    this.setAuthToken(`token_${newUserId}`);
+    this.setAuthToken(`token_${newUserId}_${Date.now()}`);
 
     return {
       success: true,

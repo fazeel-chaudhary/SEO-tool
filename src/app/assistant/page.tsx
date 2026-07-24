@@ -1,25 +1,29 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useOrg } from '@/context/org-context';
 import { AiAssistantService } from '@/services/ai-assistant-service';
 import { ChatMessage } from '@/lib/types';
-import { Sparkles, Send, Bot, User, Building2, HelpCircle, ArrowRight } from 'lucide-react';
+import { Sparkles, Send, Bot, User, Building2, HelpCircle, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function AssistantPage() {
-  const { activeLocation } = useOrg();
+  const { activeLocation, locations } = useOrg();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'msg-1',
       role: 'assistant',
-      content: `Hello! I am your AI Local SEO Assistant. I have live access to your GBP profile, rankings, citations, reviews, and competitor data for **${
-        activeLocation?.name || 'your location'
-      }**. How can I help you today?`,
+      content: `Hello! I am your AI Local SEO Assistant. I have live access to all ${locations.length} connected business profile${locations.length !== 1 ? 's' : ''}, rankings, citations, reviews, and competitor data. How can I help you today?`,
       timestamp: new Date().toISOString(),
     },
   ]);
 
   const [inputQuery, setInputQuery] = useState<string>('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
 
   if (!activeLocation) {
     return (
@@ -33,7 +37,7 @@ export default function AssistantPage() {
 
   const handleSend = async (textToSend?: string) => {
     const query = textToSend || inputQuery;
-    if (!query.trim()) return;
+    if (!query.trim() || isTyping) return;
 
     const userMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
@@ -45,10 +49,10 @@ export default function AssistantPage() {
     const newHistory = [...messages, userMsg];
     setMessages(newHistory);
     if (!textToSend) setInputQuery('');
+    setIsTyping(true);
 
-    // AI Response reasoning
     try {
-      const aiReplyText = await AiAssistantService.answerUserQuery(activeLocation, query);
+      const aiReplyText = await AiAssistantService.answerUserQuery(activeLocation, query, locations);
       const aiMsg: ChatMessage = {
         id: `msg-ai-${Date.now()}`,
         role: 'assistant',
@@ -58,15 +62,18 @@ export default function AssistantPage() {
       setMessages([...newHistory, aiMsg]);
     } catch (err) {
       console.error('AI query call failure:', err);
+    } finally {
+      setIsTyping(false);
     }
   };
 
   const samplePrompts = [
     'Why did my rankings drop?',
-    'What optimization strategies should I use?',
-    'Suggest primary & secondary categories',
+    'Analyze my competitors',
+    'Compare all my locations',
     'Show citation opportunities',
     'Generate step-by-step action plan',
+    'What optimization strategies should I use?',
   ];
 
   return (
@@ -125,6 +132,21 @@ export default function AssistantPage() {
             )}
           </div>
         ))}
+
+        {/* Typing indicator */}
+        {isTyping && (
+          <div className="flex items-start space-x-3 justify-start">
+            <div className="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center shrink-0">
+              <Bot className="w-4 h-4" />
+            </div>
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 flex items-center space-x-2">
+              <span className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Form */}

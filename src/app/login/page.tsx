@@ -36,7 +36,7 @@ export default function LoginPage() {
       } else {
         setError(res.message);
       }
-    }, 500);
+    }, 50);
   };
 
   const handleGoogleSSO = () => {
@@ -57,7 +57,7 @@ export default function LoginPage() {
         setIsLoading(false);
         setError('No registered accounts available for Google SSO simulation.');
       }
-    }, 500);
+    }, 50);
   };
 
   return (

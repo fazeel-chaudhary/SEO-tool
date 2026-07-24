@@ -127,7 +127,7 @@ export default function RegisterPage() {
         setIsLoading(false);
         setError(res.message);
       }
-    }, 600);
+    }, 50);
   };
 
   const triggerGoogleSSO = () => {
@@ -149,7 +149,7 @@ export default function RegisterPage() {
         setIsLoading(false);
         window.location.href = '/dashboard';
       }
-    }, 500);
+    }, 50);
   };
 
   return (
