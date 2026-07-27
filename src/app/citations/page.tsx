@@ -145,23 +145,20 @@ export default function CitationsPage() {
           <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
             Audited Baseline Profile (NAP Consistency Source)
           </h3>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-50 dark:bg-brand-950 text-brand-700 dark:text-brand-300">
-            Source of Truth
-          </span>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-[11px] text-slate-600 dark:text-slate-400">
           <div className="space-y-1">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Business Details</span>
-            <p><strong className="text-slate-900 dark:text-white">Name:</strong> {activeLocation.name}</p>
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Business Name & Category</span>
+            <p><strong className="text-slate-900 dark:text-white">Business Name:</strong> {activeLocation.name}</p>
             <p><strong className="text-slate-900 dark:text-white">Category:</strong> {activeLocation.category}</p>
             <p><strong className="text-slate-900 dark:text-white">Description:</strong> Professional Local Service Provider</p>
           </div>
           <div className="space-y-1">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">NAP Info</span>
-            <p><strong className="text-slate-900 dark:text-white">Address:</strong> {activeLocation.address}, {activeLocation.city}</p>
-            <p><strong className="text-slate-900 dark:text-white">Phone:</strong> {activeLocation.phone}</p>
-            <p><strong className="text-slate-900 dark:text-white">Website:</strong> {activeLocation.website || 'N/A'}</p>
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Audited NAP Info</span>
+            <p><strong className="text-slate-900 dark:text-white">Full Address:</strong> {activeLocation.address}, {activeLocation.city}, {activeLocation.state} {activeLocation.zip}</p>
+            <p><strong className="text-slate-900 dark:text-white">Phone Number:</strong> {activeLocation.phone}</p>
+            <p><strong className="text-slate-900 dark:text-white">Website URL:</strong> {activeLocation.website || 'N/A'}</p>
           </div>
           <div className="space-y-1">
             <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Hours & Coordinates</span>

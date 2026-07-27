@@ -41,7 +41,7 @@ export default function DuplicateSuppressorPage() {
         </h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
           Detect and suppress duplicate directory listings that cannibalize local pack authority for{' '}
-          <span className="font-bold">{activeLocation.name}</span> (Competing with Moz Local)
+          <span className="font-bold">{activeLocation.name}</span>
         </p>
       </div>
 

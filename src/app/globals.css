@@ -6,64 +6,32 @@
 
 @layer base {
   :root {
-    /* Use soft cream #FEF0C7 for background */
-    --background: 42 93% 95%; 
-    --foreground: 24 95% 10%;
-    
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 24 95% 10%;
-    
-    --border: 42 40% 86%;
+    --card-foreground: 222.2 84% 4.9%;
+    --border: 214.3 31.8% 91.4%;
     --ring: 24 92% 50%;
   }
 
   .dark {
-    /* Rich dark warm background */
-    --background: 24 92% 5%;
-    --foreground: 42 93% 95%;
-    
-    --card: 24 92% 8%;
-    --card-foreground: 42 93% 95%;
-    
-    --border: 24 50% 16%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
     --ring: 24 92% 50%;
   }
 }
 
 body {
-  @apply bg-cream dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen font-sans antialiased transition-colors duration-200;
+  @apply bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen font-sans antialiased transition-colors duration-200;
   font-family: Gilroy, 'League Spartan', Poppins, Arial, sans-serif;
-  line-height: 1.8;
-}
-
-/* LinkyJuice Typography Hierarchy */
-h1 {
-  font-size: 3rem !important; /* 48px */
-  font-weight: 700 !important;
-  line-height: 1.15 !important;
-  letter-spacing: -0.025em !important;
-}
-
-h2 {
-  font-size: 2.25rem !important; /* 36px */
-  font-weight: 700 !important;
-  line-height: 1.25 !important;
-  letter-spacing: -0.02em !important;
-}
-
-h3 {
-  font-size: 1.5rem !important; /* 24px */
-  font-weight: 700 !important;
-  line-height: 1.3 !important;
-}
-
-p {
-  line-height: 1.8 !important; /* 180% */
 }
 
 /* Glass panel styled with LinkyJuice palette */
 .glass-panel {
-  @apply bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-[#F66A0A]/10 dark:border-[#F66A0A]/5 shadow-sm;
+  @apply bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-sm;
 }
 
 /* Custom LinkyJuice Button Styling */
@@ -77,157 +45,29 @@ p {
   font-family: Gilroy, 'League Spartan', Poppins, Arial, sans-serif;
 }
 
-/* --- Premium Sidebar & Cards Theme Customizations --- */
-
-/* LIGHT MODE SIDEBAR (Light Green background) */
-aside {
-  background-color: #DCFFE4 !important;
-  border-color: rgba(246, 106, 10, 0.15) !important;
-}
-aside h1 {
-  color: #1e293b !important;
-}
-aside span {
-  color: #F66A0A !important;
-}
-aside a {
-  color: #475569 !important;
-}
-aside a:hover {
-  color: #F66A0A !important;
-  background-color: rgba(246, 106, 10, 0.08) !important;
-}
-aside a:hover svg {
-  color: #F66A0A !important;
-}
-aside a[class*="bg-brand-50"], 
-aside a[class*="bg-brand-100"], 
-aside a[class*="bg-brand-600"], 
-aside a[class*="text-brand-600"], 
-aside a[class*="text-brand-400"] {
-  background-color: #F66A0A !important;
-  color: #ffffff !important;
-}
-aside a[class*="bg-brand-50"] svg, 
-aside a[class*="bg-brand-100"] svg, 
-aside a[class*="bg-brand-600"] svg, 
-aside a[class*="text-brand-600"] svg, 
-aside a[class*="text-brand-400"] svg {
-  color: #ffffff !important;
-}
-aside a[class*="bg-brand-50"] span, 
-aside a[class*="bg-brand-100"] span, 
-aside a[class*="bg-brand-600"] span, 
-aside a[class*="text-brand-600"] span, 
-aside a[class*="text-brand-400"] span {
-  color: #ffffff !important;
-}
-
-/* DARK MODE SIDEBAR (Pure Black background) */
-.dark aside {
-  background-color: #000000 !important;
-  border-color: rgba(246, 106, 10, 0.2) !important;
-}
-.dark aside h1 {
-  color: #ffffff !important;
-}
-.dark aside span {
-  color: #ff7833 !important;
-}
-.dark aside a {
-  color: #d1d5db !important;
-}
-.dark aside a:hover {
-  color: #ffffff !important;
-  background-color: rgba(246, 106, 10, 0.15) !important;
-}
-.dark aside a:hover svg {
-  color: #ffffff !important;
-}
-.dark aside a[class*="bg-brand-50"], 
-.dark aside a[class*="bg-brand-100"], 
-.dark aside a[class*="bg-brand-600"], 
-.dark aside a[class*="text-brand-600"], 
-.dark aside a[class*="text-brand-400"] {
-  background-color: #F66A0A !important;
-  color: #ffffff !important;
-}
-.dark aside a[class*="bg-brand-50"] svg, 
-.dark aside a[class*="bg-brand-100"] svg, 
-.dark aside a[class*="bg-brand-600"] svg, 
-.dark aside a[class*="text-brand-600"] svg, 
-.dark aside a[class*="text-brand-400"] svg {
-  color: #ffffff !important;
-}
-.dark aside a[class*="bg-brand-50"] span, 
-.dark aside a[class*="bg-brand-100"] span, 
-.dark aside a[class*="bg-brand-600"] span, 
-.dark aside a[class*="text-brand-600"] span, 
-.dark aside a[class*="text-brand-400"] span {
-  color: #ffffff !important;
-}
-
-/* Cards in light mode: white background with orange or green borders */
-.bg-white, .bg-slate-900 {
-  background-color: #ffffff !important;
-  border-color: rgba(246, 106, 10, 0.25) !important;
-}
-
-.bg-white:nth-of-type(2n+1), .bg-slate-900:nth-of-type(2n+1) {
-  border-color: #F66A0A !important;
-}
-.bg-white:nth-of-type(2n+2), .bg-slate-900:nth-of-type(2n+2) {
-  border-color: #DCFFE4 !important;
-}
-
-/* Cards in dark mode: dark background with custom brand borders */
-.dark .bg-white, .dark .bg-slate-900 {
-  background-color: #050505 !important;
-  color: #f8fafc !important;
-  border-color: rgba(246, 106, 10, 0.3) !important;
-}
-
-/* Cycle card borders through orange, cream, and greenAccent in dark mode */
-.dark .bg-white:nth-of-type(3n+1), .dark .bg-slate-900:nth-of-type(3n+1) {
-  border-color: #F66A0A !important;
-}
-.dark .bg-white:nth-of-type(3n+2), .dark .bg-slate-900:nth-of-type(3n+2) {
-  border-color: #FEF0C7 !important;
-}
-.dark .bg-white:nth-of-type(3n+3), .dark .bg-slate-900:nth-of-type(3n+3) {
-  border-color: #DCFFE4 !important;
-}
-
 /* --- Custom Premium Scrollbar Customizations --- */
-
-/* Width and sizing of scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-/* Scrollbar Track */
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Scrollbar Thumb (Light Mode) */
 ::-webkit-scrollbar-thumb {
-  background: rgba(246, 106, 10, 0.3) !important;
+  background: rgba(246, 106, 10, 0.3);
   border-radius: 100vw;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(246, 106, 10, 0.65) !important;
+  background: rgba(246, 106, 10, 0.65);
 }
 
-/* Scrollbar Thumb (Dark Mode) */
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(246, 106, 10, 0.25) !important;
+  background: rgba(246, 106, 10, 0.25);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(246, 106, 10, 0.55) !important;
+  background: rgba(246, 106, 10, 0.55);
 }
-
-

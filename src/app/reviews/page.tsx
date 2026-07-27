@@ -8,7 +8,6 @@ import { Review, Sentiment } from '@/lib/types';
 import {
   MessageSquare,
   Star,
-  Sparkles,
   CheckCircle2,
   Clock,
   Send,
@@ -135,7 +134,7 @@ export default function ReviewsPage() {
             AI Sentiment
           </span>
           <div className="text-3xl font-black text-brand-600 dark:text-brand-400 mt-1 flex items-center">
-            <Sparkles className="w-6 h-6 mr-1.5" />
+            <ThumbsUp className="w-6 h-6 mr-1.5" />
             Positive
           </div>
           <span className="text-[11px] text-slate-500 font-medium">AI Sentiment Classification</span>
@@ -261,7 +260,7 @@ export default function ReviewsPage() {
                   onClick={() => handleOpenReplyModal(rev)}
                   className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm shadow-brand-600/20 active:scale-95"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <MessageSquare className="w-3.5 h-3.5" />
                   <span>Draft AI Reply</span>
                 </button>
               </div>
@@ -276,7 +275,7 @@ export default function ReviewsPage() {
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center">
-                <Sparkles className="w-5 h-5 mr-2 text-brand-500" />
+                <MessageSquare className="w-5 h-5 mr-2 text-brand-500" />
                 AI Reply Assistant
               </h2>
               <button

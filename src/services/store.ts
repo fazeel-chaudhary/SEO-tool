@@ -21,6 +21,8 @@ import {
   AuditLog,
   AiPrompt,
   User,
+  Project,
+  GridScanSchedule,
 } from '@/lib/types';
 import {
   INITIAL_ORGANIZATIONS,
@@ -43,6 +45,7 @@ import {
   INITIAL_DUPLICATE_LISTINGS,
   INITIAL_AI_PROMPTS,
   INITIAL_AUDIT_LOGS,
+  createMockGridPoints,
 } from '@/lib/mock-data';
 
 const STORAGE_KEYS = {
@@ -127,7 +130,12 @@ export class AppStore {
   }
 
   static getLocations(orgId?: string): Location[] {
-    const all = getStored(STORAGE_KEYS.LOCATIONS, INITIAL_LOCATIONS);
+    let all = getStored(STORAGE_KEYS.LOCATIONS, INITIAL_LOCATIONS);
+    const missing = INITIAL_LOCATIONS.filter((initLoc) => !all.some((l) => l.id === initLoc.id));
+    if (missing.length > 0) {
+      all = [...all, ...missing];
+      setStored(STORAGE_KEYS.LOCATIONS, all);
+    }
     if (!orgId) return all;
     return all.filter((loc) => loc.organizationId === orgId);
   }
@@ -148,7 +156,12 @@ export class AppStore {
   }
 
   static getKeywords(locationId?: string): Keyword[] {
-    const all = getStored(STORAGE_KEYS.KEYWORDS, INITIAL_KEYWORDS);
+    let all = getStored(STORAGE_KEYS.KEYWORDS, INITIAL_KEYWORDS);
+    const missing = INITIAL_KEYWORDS.filter((initKw) => !all.some((k) => k.id === initKw.id));
+    if (missing.length > 0) {
+      all = [...all, ...missing];
+      setStored(STORAGE_KEYS.KEYWORDS, all);
+    }
     if (!locationId) return all;
     return all.filter((kw) => kw.locationId === locationId);
   }
@@ -160,6 +173,12 @@ export class AppStore {
     else all.push(keyword);
     setStored(STORAGE_KEYS.KEYWORDS, all);
     return keyword;
+  }
+
+  static deleteKeyword(id: string): void {
+    const all = this.getKeywords();
+    const filtered = all.filter((kw) => kw.id !== id);
+    setStored(STORAGE_KEYS.KEYWORDS, filtered);
   }
 
   static getSnapshots(locationId?: string): RankingSnapshot[] {
@@ -267,7 +286,29 @@ export class AppStore {
   }
 
   static getGeoScans(locationId?: string): GeoGridScan[] {
-    const all = getStored(STORAGE_KEYS.GEO_SCANS, INITIAL_GEO_SCANS);
+    let all = getStored(STORAGE_KEYS.GEO_SCANS, INITIAL_GEO_SCANS);
+    const missing = INITIAL_GEO_SCANS.filter((initScan) => !all.some((s) => s.id === initScan.id));
+    if (missing.length > 0) {
+      all = [...all, ...missing];
+      setStored(STORAGE_KEYS.GEO_SCANS, all);
+    }
+    // Auto-fix any legacy 1-node scans in storage
+    let modified = false;
+    all = all.map((scan) => {
+      if (!scan.points || scan.points.length <= 1) {
+        modified = true;
+        const dim = scan.gridSize === '7x7' ? 7 : scan.gridSize === '9x9' ? 9 : 5;
+        return {
+          ...scan,
+          points: createMockGridPoints(scan.centerLat, scan.centerLng, dim, scan.radiusMiles || 2.0),
+        };
+      }
+      return scan;
+    });
+    if (modified) {
+      setStored(STORAGE_KEYS.GEO_SCANS, all);
+    }
+
     if (!locationId) return all;
     return all.filter((s) => s.locationId === locationId);
   }
@@ -346,7 +387,7 @@ export class AppStore {
     return settings;
   }
 
-  // Citation Submissions (BrightLocal feature)
+  // Citation Submissions
   static getCitationSubmissions(locationId?: string): CitationSubmission[] {
     const all = getStored(STORAGE_KEYS.CITATION_SUBMISSIONS, INITIAL_CITATION_SUBMISSIONS);
     if (!locationId) return all;
@@ -362,7 +403,7 @@ export class AppStore {
     return sub;
   }
 
-  // Review Campaigns (Whitespark feature)
+  // Review Campaigns
   static getReviewCampaigns(locationId?: string): ReviewCampaign[] {
     const all = getStored(STORAGE_KEYS.REVIEW_CAMPAIGNS, INITIAL_REVIEW_CAMPAIGNS);
     if (!locationId) return all;
@@ -378,7 +419,7 @@ export class AppStore {
     return camp;
   }
 
-  // Duplicate Listings (Moz Local feature)
+  // Duplicate Listings
   static getDuplicateListings(locationId?: string): DuplicateListing[] {
     const all = getStored(STORAGE_KEYS.DUPLICATES, INITIAL_DUPLICATE_LISTINGS);
     if (!locationId) return all;
@@ -510,5 +551,110 @@ export class AppStore {
     }
     setStored(STORAGE_KEYS.AUTOMATIONS, all);
     return rule;
+  }
+
+  // Projects & Folders Management
+  static getProjects(organizationId: string): Project[] {
+    const fallbackProjects: Project[] = [
+      {
+        id: 'proj-1',
+        name: 'Downtown Dental Expansion',
+        folderName: 'Client Campaign - Austin',
+        description: 'Multi-point Geo-Grid local rank tracking campaign',
+        isFavorite: true,
+        isArchived: false,
+        assignedUserIds: ['user-1'],
+        locationIds: ['loc-1'],
+        organizationId,
+        createdAt: new Date().toISOString(),
+      },
+    ];
+    const all = getStored<Project[]>('seo_os_projects', fallbackProjects);
+    return all.filter((p) => p.organizationId === organizationId && !p.isArchived);
+  }
+
+  static saveProject(project: Project): Project {
+    const all = getStored<Project[]>('seo_os_projects', []);
+    const index = all.findIndex((p) => p.id === project.id);
+    if (index >= 0) all[index] = project;
+    else all.push(project);
+    setStored('seo_os_projects', all);
+    return project;
+  }
+
+  static toggleFavoriteProject(projectId: string): void {
+    const all = getStored<Project[]>('seo_os_projects', []);
+    const proj = all.find((p) => p.id === projectId);
+    if (proj) {
+      proj.isFavorite = !proj.isFavorite;
+      setStored('seo_os_projects', all);
+    }
+  }
+
+  static deleteProject(projectId: string): void {
+    const all = getStored<Project[]>('seo_os_projects', []);
+    const filtered = all.filter((p) => p.id !== projectId);
+    setStored('seo_os_projects', filtered);
+  }
+
+  // Scan Schedules Management
+  static getSchedules(locationId: string): GridScanSchedule[] {
+    const fallbackSchedules: GridScanSchedule[] = [
+      {
+        id: 'sched-1',
+        locationId,
+        keywordTerm: 'emergency dentist austin',
+        gridSize: '5x5',
+        radiusMiles: 2.0,
+        frequency: 'WEEKLY',
+        emailRecipients: ['admin@agency.com'],
+        active: true,
+        lastRunAt: '2 days ago',
+        nextRunAt: 'In 5 days',
+        createdAt: new Date().toISOString(),
+      },
+    ];
+    const all = getStored<GridScanSchedule[]>('seo_os_grid_schedules', fallbackSchedules);
+    return all.filter((s) => s.locationId === locationId);
+  }
+
+  static saveSchedule(schedule: GridScanSchedule): GridScanSchedule {
+    const all = getStored<GridScanSchedule[]>('seo_os_grid_schedules', []);
+    const index = all.findIndex((s) => s.id === schedule.id);
+    if (index >= 0) all[index] = schedule;
+    else all.push(schedule);
+    setStored('seo_os_grid_schedules', all);
+    return schedule;
+  }
+
+  static deleteSchedule(scheduleId: string): void {
+    const all = getStored<GridScanSchedule[]>('seo_os_grid_schedules', []);
+    const filtered = all.filter((s) => s.id !== scheduleId);
+    setStored('seo_os_grid_schedules', filtered);
+  }
+
+  // CSV Bulk Keyword Importer
+  static importKeywordsFromCsv(locationId: string, city: string, csvText: string): Keyword[] {
+    const lines = csvText.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
+    const added: Keyword[] = [];
+
+    lines.forEach((line) => {
+      // Remove quotes or header line
+      const cleanLine = line.replace(/["']/g, '').split(',')[0].trim();
+      if (cleanLine && cleanLine.toLowerCase() !== 'keyword' && cleanLine.toLowerCase() !== 'term') {
+        const newKw: Keyword = {
+          id: `kw-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          term: cleanLine,
+          city,
+          locationId,
+          latestRank: Math.floor(Math.random() * 5) + 1,
+          rankChange: 0,
+        };
+        this.saveKeyword(newKw);
+        added.push(newKw);
+      }
+    });
+
+    return added;
   }
 }

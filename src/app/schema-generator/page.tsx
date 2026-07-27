@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useOrg } from '@/context/org-context';
 import { SchemaService } from '@/services/schema-service';
-import { Code2, Copy, Check, Download, Building2, Eye, ShieldAlert, Sparkles, Map, Image, HelpCircle, Compass, List, Link } from 'lucide-react';
+import { Code2, Copy, Check, Download, Building2, Eye, ShieldAlert, Map, Image, HelpCircle, Compass, List, Link } from 'lucide-react';
 
 type SchemaOption =
   | 'LocalBusiness'
@@ -213,7 +213,7 @@ export default function SchemaGeneratorPage() {
           {/* Validation Engine Card */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
             <div className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center">
-              <Sparkles className="w-4 h-4 mr-2 text-emerald-500" />
+              <Check className="w-4 h-4 mr-2 text-emerald-500" />
               Live Schema Validation Status
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">

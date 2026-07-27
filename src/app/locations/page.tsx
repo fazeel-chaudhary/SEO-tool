@@ -67,6 +67,28 @@ export default function LocationsPage() {
   const [bulkHoursSelected, setBulkHoursSelected] = useState<string[]>([]);
   const [bulkHoursSuccess, setBulkHoursSuccess] = useState<string | null>(null);
 
+  // Bulk Images Modal State
+  const [showBulkImagesModal, setShowBulkImagesModal] = useState(false);
+  const [bulkImagesCategory, setBulkImagesCategory] = useState<'LOGO' | 'COVER' | 'INTERIOR' | 'EXTERIOR' | 'TEAM'>('LOGO');
+  const [bulkImagesUrl, setBulkImagesUrl] = useState('https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=600&auto=format&fit=crop');
+  const [bulkImagesCaption, setBulkImagesCaption] = useState('Official Office Logo');
+  const [bulkImagesSelected, setBulkImagesSelected] = useState<string[]>([]);
+  const [bulkImagesSuccess, setBulkImagesSuccess] = useState<string | null>(null);
+
+  // Bulk FAQs Modal State
+  const [showBulkFaqsModal, setShowBulkFaqsModal] = useState(false);
+  const [bulkFaqQuestion, setBulkFaqQuestion] = useState('What are your emergency service hours?');
+  const [bulkFaqAnswer, setBulkFaqAnswer] = useState('We offer 24/7 emergency response support across all business locations.');
+  const [bulkFaqsSelected, setBulkFaqsSelected] = useState<string[]>([]);
+  const [bulkFaqsSuccess, setBulkFaqsSuccess] = useState<string | null>(null);
+
+  // Bulk Reports Modal State
+  const [showBulkReportsModal, setShowBulkReportsModal] = useState(false);
+  const [bulkReportFormat, setBulkReportFormat] = useState<'CSV' | 'PDF'>('CSV');
+  const [bulkReportType, setBulkReportType] = useState<'FULL_AUDIT' | 'RANK_HEATMAP' | 'CITATIONS_SUMMARY'>('FULL_AUDIT');
+  const [bulkReportsSelected, setBulkReportsSelected] = useState<string[]>([]);
+  const [bulkReportsSuccess, setBulkReportsSuccess] = useState<string | null>(null);
+
   // Plan limit helper
   const getPlanLimit = (): number => {
     if (!activeOrg) return 3;
@@ -200,6 +222,106 @@ export default function LocationsPage() {
     const count = bulkHoursSelected.length;
     setBulkHoursSuccess(`Business hours pushed to ${count} profile${count !== 1 ? 's' : ''}!`);
     setTimeout(() => { setShowBulkHoursModal(false); setBulkHoursSuccess(null); }, 2000);
+  };
+
+  // Bulk Images handlers
+  const openBulkImagesModal = () => {
+    setBulkImagesSelected(locations.map((l) => l.id));
+    setBulkImagesSuccess(null);
+    setShowBulkImagesModal(true);
+  };
+  const toggleBulkImagesLocation = (id: string) => {
+    setBulkImagesSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+  const handleBulkImagesUpload = () => {
+    if (!bulkImagesUrl.trim()) return;
+    const count = bulkImagesSelected.length;
+    bulkImagesSelected.forEach((id) => {
+      const loc = locations.find((l) => l.id === id);
+      if (loc) {
+        AppStore.saveLocation({
+          ...loc,
+          gbpPhotoCount: (loc.gbpPhotoCount || 0) + 1,
+        });
+      }
+    });
+    refreshState();
+    setBulkImagesSuccess(`Uploaded ${bulkImagesCategory.toLowerCase()} photo to ${count} business location profile${count !== 1 ? 's' : ''}!`);
+    setTimeout(() => {
+      setShowBulkImagesModal(false);
+      setBulkImagesSuccess(null);
+    }, 2000);
+  };
+
+  // Bulk FAQs handlers
+  const openBulkFaqsModal = () => {
+    setBulkFaqsSelected(locations.map((l) => l.id));
+    setBulkFaqsSuccess(null);
+    setShowBulkFaqsModal(true);
+  };
+  const toggleBulkFaqsLocation = (id: string) => {
+    setBulkFaqsSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+  const handleBulkFaqsSync = () => {
+    if (!bulkFaqQuestion.trim() || !bulkFaqAnswer.trim()) return;
+    const count = bulkFaqsSelected.length;
+    setBulkFaqsSuccess(`Synced FAQ "${bulkFaqQuestion.slice(0, 30)}..." to ${count} location landing page${count !== 1 ? 's' : ''}!`);
+    setTimeout(() => {
+      setShowBulkFaqsModal(false);
+      setBulkFaqsSuccess(null);
+    }, 2000);
+  };
+
+  // Bulk Reports handlers
+  const openBulkReportsModal = () => {
+    setBulkReportsSelected(locations.map((l) => l.id));
+    setBulkReportsSuccess(null);
+    setShowBulkReportsModal(true);
+  };
+  const toggleBulkReportsLocation = (id: string) => {
+    setBulkReportsSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+  const handleBulkReportsExport = () => {
+    const selectedLocs = locations.filter((l) => bulkReportsSelected.includes(l.id));
+    const count = selectedLocs.length;
+
+    if (bulkReportFormat === 'CSV') {
+      const headers = ['Location Name', 'Address', 'City', 'State', 'ZIP', 'Phone', 'Category', 'GBP Status', 'Photo Count', 'Post Count'];
+      const rows = selectedLocs.map((l) => [
+        `"${l.name}"`,
+        `"${l.address}"`,
+        `"${l.city}"`,
+        `"${l.state}"`,
+        `"${l.zip}"`,
+        `"${l.phone}"`,
+        `"${l.category}"`,
+        `"${l.gbpConnected ? 'Active' : 'Disconnected'}"`,
+        l.gbpPhotoCount || 0,
+        l.gbpPostCount || 0,
+      ]);
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `multi_location_report_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      window.print();
+    }
+
+    setBulkReportsSuccess(`Compiled & exported ${bulkReportFormat} report for ${count} location${count !== 1 ? 's' : ''}!`);
+    setTimeout(() => {
+      setShowBulkReportsModal(false);
+      setBulkReportsSuccess(null);
+    }, 2000);
   };
 
   const handleOpenEdit = (loc: Location) => {
@@ -438,7 +560,7 @@ export default function LocationsPage() {
           </button>
 
           <button
-            onClick={() => alert(`Bulk Logo/Images Upload: Uploaded branding files to all ${locations.length} locations!`)}
+            onClick={openBulkImagesModal}
             className="p-3 bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:border-emerald-300 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs space-y-1.5 transition-all"
           >
             <ImageIcon className="w-4 h-4 mx-auto text-emerald-500" />
@@ -446,7 +568,7 @@ export default function LocationsPage() {
           </button>
 
           <button
-            onClick={() => alert(`Bulk FAQ push: Synced standard FAQs to all ${locations.length} location landing pages!`)}
+            onClick={openBulkFaqsModal}
             className="p-3 bg-slate-50 dark:bg-slate-800/60 hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:border-amber-300 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs space-y-1.5 transition-all"
           >
             <HelpCircle className="w-4 h-4 mx-auto text-amber-500" />
@@ -454,7 +576,7 @@ export default function LocationsPage() {
           </button>
 
           <button
-            onClick={() => alert(`Bulk Reporting: Compiling CSV export for all ${locations.length} locations...`)}
+            onClick={openBulkReportsModal}
             className="p-3 bg-slate-50 dark:bg-slate-800/60 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:border-rose-300 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs space-y-1.5 transition-all col-span-2 sm:col-span-1"
           >
             <FileText className="w-4 h-4 mx-auto text-rose-500" />
@@ -1325,6 +1447,233 @@ export default function LocationsPage() {
         </div>
       )}
 
+      {/* ═══ BULK IMAGES MODAL ═══ */}
+      {showBulkImagesModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg flex items-center">
+                  <ImageIcon className="w-5 h-5 mr-2 text-emerald-500" />
+                  Bulk Logo & Photo Upload
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Upload branding or location media across selected business profiles</p>
+              </div>
+              <button onClick={() => setShowBulkImagesModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X className="w-5 h-5" /></button>
+            </div>
+
+            {bulkImagesSuccess ? (
+              <div className="text-center py-8 space-y-3">
+                <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
+                <p className="font-bold text-slate-800 dark:text-white text-sm">{bulkImagesSuccess}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Photo Category</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['LOGO', 'COVER', 'INTERIOR', 'EXTERIOR', 'TEAM'] as const).map((cat) => (
+                      <button key={cat} onClick={() => setBulkImagesCategory(cat)} className={`py-2 rounded-xl text-xs font-bold border transition-all ${bulkImagesCategory === cat ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}>
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Image URL / Asset Link *</label>
+                  <input value={bulkImagesUrl} onChange={(e) => setBulkImagesUrl(e.target.value)} placeholder="https://example.com/logo.png" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Image Caption / Alt Text</label>
+                  <input value={bulkImagesCaption} onChange={(e) => setBulkImagesCaption(e.target.value)} placeholder="e.g. Modern Dental Clinic Entrance" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Upload To ({bulkImagesSelected.length}/{locations.length} profiles)</label>
+                    <div className="flex space-x-2">
+                      <button onClick={() => setBulkImagesSelected(locations.map((l) => l.id))} className="text-[10px] font-bold text-emerald-600 hover:underline">Select All</button>
+                      <span className="text-slate-300 dark:text-slate-600">|</span>
+                      <button onClick={() => setBulkImagesSelected([])} className="text-[10px] font-bold text-slate-500 hover:underline">Deselect All</button>
+                    </div>
+                  </div>
+                  <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                    {locations.map((loc) => (
+                      <label key={loc.id} className="flex items-center space-x-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-400 transition-all">
+                        <input type="checkbox" checked={bulkImagesSelected.includes(loc.id)} onChange={() => toggleBulkImagesLocation(loc.id)} className="w-4 h-4 rounded accent-emerald-600" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-slate-800 dark:text-white truncate">{loc.name}</p>
+                          <p className="text-[10px] text-slate-500 truncate">{loc.city}, {loc.state}</p>
+                        </div>
+                        {loc.gbpConnected && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex space-x-2 pt-1">
+                  <button onClick={() => setShowBulkImagesModal(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs">Cancel</button>
+                  <button onClick={handleBulkImagesUpload} disabled={!bulkImagesUrl.trim() || bulkImagesSelected.length === 0} className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center space-x-1.5 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-emerald-600/20">
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    <span>Upload to {bulkImagesSelected.length} Location{bulkImagesSelected.length !== 1 ? 's' : ''}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ BULK FAQS MODAL ═══ */}
+      {showBulkFaqsModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg flex items-center">
+                  <HelpCircle className="w-5 h-5 mr-2 text-amber-500" />
+                  Bulk FAQs Sync
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Push standard FAQ pairs across selected location landing pages</p>
+              </div>
+              <button onClick={() => setShowBulkFaqsModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X className="w-5 h-5" /></button>
+            </div>
+
+            {bulkFaqsSuccess ? (
+              <div className="text-center py-8 space-y-3">
+                <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
+                <p className="font-bold text-slate-800 dark:text-white text-sm">{bulkFaqsSuccess}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Question *</label>
+                  <input value={bulkFaqQuestion} onChange={(e) => setBulkFaqQuestion(e.target.value)} placeholder="e.g. Do you accept emergency walk-ins?" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Answer *</label>
+                  <textarea value={bulkFaqAnswer} onChange={(e) => setBulkFaqAnswer(e.target.value)} rows={3} placeholder="Provide a helpful answer..." className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none" />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Push To ({bulkFaqsSelected.length}/{locations.length} profiles)</label>
+                    <div className="flex space-x-2">
+                      <button onClick={() => setBulkFaqsSelected(locations.map((l) => l.id))} className="text-[10px] font-bold text-amber-600 hover:underline">Select All</button>
+                      <span className="text-slate-300 dark:text-slate-600">|</span>
+                      <button onClick={() => setBulkFaqsSelected([])} className="text-[10px] font-bold text-slate-500 hover:underline">Deselect All</button>
+                    </div>
+                  </div>
+                  <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                    {locations.map((loc) => (
+                      <label key={loc.id} className="flex items-center space-x-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-amber-400 transition-all">
+                        <input type="checkbox" checked={bulkFaqsSelected.includes(loc.id)} onChange={() => toggleBulkFaqsLocation(loc.id)} className="w-4 h-4 rounded accent-amber-600" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-slate-800 dark:text-white truncate">{loc.name}</p>
+                          <p className="text-[10px] text-slate-500 truncate">{loc.city}, {loc.state}</p>
+                        </div>
+                        {loc.gbpConnected && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex space-x-2 pt-1">
+                  <button onClick={() => setShowBulkFaqsModal(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs">Cancel</button>
+                  <button onClick={handleBulkFaqsSync} disabled={!bulkFaqQuestion.trim() || !bulkFaqAnswer.trim() || bulkFaqsSelected.length === 0} className="flex-1 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center justify-center space-x-1.5 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-amber-600/20">
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    <span>Sync to {bulkFaqsSelected.length} Location{bulkFaqsSelected.length !== 1 ? 's' : ''}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ BULK REPORTS MODAL ═══ */}
+      {showBulkReportsModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg flex items-center">
+                  <FileText className="w-5 h-5 mr-2 text-rose-500" />
+                  Bulk Multi-Location Export & Reports
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Export data & audit reports for selected locations</p>
+              </div>
+              <button onClick={() => setShowBulkReportsModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X className="w-5 h-5" /></button>
+            </div>
+
+            {bulkReportsSuccess ? (
+              <div className="text-center py-8 space-y-3">
+                <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
+                <p className="font-bold text-slate-800 dark:text-white text-sm">{bulkReportsSuccess}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Report Type</label>
+                  <select value={bulkReportType} onChange={(e) => setBulkReportType(e.target.value as any)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500">
+                    <option value="FULL_AUDIT">Full SEO Audit & Performance Summary</option>
+                    <option value="RANK_HEATMAP">Local Rank Tracking & Heatmaps Report</option>
+                    <option value="CITATIONS_SUMMARY">Directory Citations & NAP Consistency Report</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Export Format</label>
+                  <div className="flex space-x-3">
+                    <button onClick={() => setBulkReportFormat('CSV')} className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition-all ${bulkReportFormat === 'CSV' ? 'bg-rose-600 text-white border-rose-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}>
+                      Spreadsheet (.CSV)
+                    </button>
+                    <button onClick={() => setBulkReportFormat('PDF')} className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition-all ${bulkReportFormat === 'PDF' ? 'bg-rose-600 text-white border-rose-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}>
+                      Printable PDF (.PDF)
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Include Locations ({bulkReportsSelected.length}/{locations.length} profiles)</label>
+                    <div className="flex space-x-2">
+                      <button onClick={() => setBulkReportsSelected(locations.map((l) => l.id))} className="text-[10px] font-bold text-rose-600 hover:underline">Select All</button>
+                      <span className="text-slate-300 dark:text-slate-600">|</span>
+                      <button onClick={() => setBulkReportsSelected([])} className="text-[10px] font-bold text-slate-500 hover:underline">Deselect All</button>
+                    </div>
+                  </div>
+                  <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                    {locations.map((loc) => (
+                      <label key={loc.id} className="flex items-center space-x-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-rose-400 transition-all">
+                        <input type="checkbox" checked={bulkReportsSelected.includes(loc.id)} onChange={() => toggleBulkReportsLocation(loc.id)} className="w-4 h-4 rounded accent-rose-600" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-slate-800 dark:text-white truncate">{loc.name}</p>
+                          <p className="text-[10px] text-slate-500 truncate">{loc.city}, {loc.state}</p>
+                        </div>
+                        {loc.gbpConnected && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex space-x-2 pt-1">
+                  <button onClick={() => setShowBulkReportsModal(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs">Cancel</button>
+                  <button onClick={handleBulkReportsExport} disabled={bulkReportsSelected.length === 0} className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center space-x-1.5 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-rose-600/20">
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Export {bulkReportsSelected.length} Location{bulkReportsSelected.length !== 1 ? 's' : ''}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
+

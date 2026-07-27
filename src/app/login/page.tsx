@@ -68,7 +68,7 @@ export default function LoginPage() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
         <div className="flex justify-center">
-          <img src="/logo.png" className="w-12 h-12 rounded-2xl object-contain bg-white border border-[#F66A0A]/20 p-0.5" alt="Local SEO OS Logo" />
+          <img src="/logo.png" className="w-12 h-12 rounded-full object-contain bg-white border border-[#F66A0A]/20 p-1 shadow-md" alt="Local SEO OS Logo" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-black text-white">Local SEO OS</h2>
         <p className="mt-2 text-center text-xs text-slate-400">

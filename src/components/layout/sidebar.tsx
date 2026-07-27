@@ -118,7 +118,9 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
       {/* Brand Logo & Header */}
       <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <div className="flex items-center space-x-2.5 shrink-0">
-          <img src="/logo.png" className="w-11 h-11 object-contain shrink-0" alt="Local SEO OS Logo" />
+          <div className="w-11 h-11 rounded-full bg-white dark:bg-slate-800 border border-[#F66A0A]/20 p-1 flex items-center justify-center shadow-sm shrink-0">
+            <img src="/logo.png" className="w-full h-full object-contain rounded-full" alt="Local SEO OS Logo" />
+          </div>
           <div className="flex flex-col shrink-0">
             <h1 className="font-black text-slate-900 dark:text-white leading-tight text-xs tracking-tight">
               Local<br />SEO

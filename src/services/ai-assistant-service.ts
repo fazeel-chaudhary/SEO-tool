@@ -4,17 +4,6 @@ import { AuditEngine } from './audit-engine';
 import { CitationService } from './citation-service';
 import { ReviewService } from './review-service';
 
-/** Strip markdown formatting symbols from AI-generated text for clean UI display */
-function cleanAiText(text: string): string {
-  return text
-    .replace(/^#{1,6}\s+/gm, '')
-    .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/\*(.+?)\*/g, '$1')
-    .replace(/^[-]\s+/gm, '• ')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
-
 export class AiAssistantService {
   static async answerUserQuery(
     location: Location,
@@ -44,7 +33,6 @@ export class AiAssistantService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query,
-          // Enrich location with computed metrics for the AI system prompt
           location: {
             ...location,
             overallScore: AuditEngine.runUnifiedAudit(location).overallScore,
@@ -60,11 +48,11 @@ export class AiAssistantService {
       if (response.ok) {
         const data = await response.json();
         if (data.status === 'success' && data.answer) {
-          return cleanAiText(data.answer);
+          return data.answer;
         }
       }
     } catch (err) {
-      console.warn('Live AI router query failed, falling back to local reasoning:', err);
+      console.warn('Live AI router query failed, falling back to local structured reasoning:', err);
     }
 
     const qLower = query.toLowerCase();
@@ -75,61 +63,104 @@ export class AiAssistantService {
       (r) => r.status !== 'DONE'
     );
 
+    // 1. MULTI-LOCATION COMPARISON QUERY
     if (allLocations && allLocations.length > 1 &&
       (qLower.includes('compare') || qLower.includes('all location') || qLower.includes('which location') || qLower.includes('needs the most'))) {
-      const rows = allLocations.map((l) => {
+      
+      const locMetrics = allLocations.map((l) => {
         const a = AuditEngine.runUnifiedAudit(l);
         const c = CitationService.runCitationAudit(l);
         const r = ReviewService.runReviewAudit(l);
-        return { name: l.name, score: a.overallScore, citation: c.score, rating: r.averageRating };
+        return { name: l.name, city: l.city, score: a.overallScore, citation: c.score, rating: r.averageRating, reviews: r.reviews.length };
       }).sort((a, b) => a.score - b.score);
-      const worst = rows[0];
-      let reply = `Multi-Location Performance Overview (${allLocations.length} profiles):\n\n`;
-      rows.forEach((r, i) => { reply += `${i + 1}. ${r.name}\n   SEO Score: ${r.score}/100 | Citations: ${r.citation}% | Rating: ${r.rating}\n\n`; });
-      reply += `Recommendation: "${worst.name}" needs the most urgent attention (SEO score: ${worst.score}/100). Focus on citation fixes, review responses, and photo uploads there first.`;
+      const worst = locMetrics[0];
+
+      let reply = `### 📊 Multi-Location Performance Comparison (${allLocations.length} Locations)\n\n`;
+      reply += `| Location Name | SEO Score | Citation Accuracy | Star Rating | Total Reviews | Status |\n`;
+      reply += `|---|---|---|---|---|---|\n`;
+      locMetrics.forEach((m) => {
+        const status = m.score >= 80 ? '🟢 Strong' : m.score >= 60 ? '🟡 Average' : '🔴 Action Needed';
+        reply += `| **${m.name}** (${m.city}) | **${m.score}/100** | ${m.citation}% | ${m.rating}★ | ${m.reviews} | ${status} |\n`;
+      });
+      reply += `\n**Key Finding**: Location **"${worst.name}"** requires the most urgent optimization (SEO Score: **${worst.score}/100**).\n\n`;
+      reply += `### 🎯 Recommended Action Steps Today:\n`;
+      reply += `1. **Fix Inconsistent Citations**: Update directory details on ${worst.name}.\n`;
+      reply += `2. **Publish GBP Updates**: Schedule 2 weekly posts to boost local pack activity.\n`;
+      reply += `3. **Upload Photos**: Increase photos to 35+ to match top competitors.`;
       return reply;
     }
 
-    if (qLower.includes('competitor') || qLower.includes('competition')) {
+    // 2. COMPETITOR COMPARISON QUERY
+    if (qLower.includes('competitor') || qLower.includes('competition') || qLower.includes('vs') || qLower.includes('benchmark')) {
       if (competitors.length === 0) {
-        return `No competitors have been added yet for ${location.name}. Go to the Competitors tab and add your top 3-5 local competitors to enable AI comparison and strategy suggestions.`;
+        return `### ⚔️ Competitor Benchmark Analysis\n\nNo competitors tracked yet for **${location.name}**. Add 3-5 local competitors in the Competitors tab to generate comparative matrices.`;
       }
+
       const top = competitors[0];
-      return `Competitor Analysis for ${location.name}:\n\nTop Competitor: ${top.name}\n• Their Rating: ${top.rating || 'N/A'} | Your Rating: ${revAudit.averageRating}\n• Their Review Count: ${top.reviewCount || 'N/A'} | Yours: ${revAudit.reviews.length}\n\nAI Recommendations to Outperform ${top.name}:\n\n1. Post Strategy: Publish 2-3 GBP posts per week with local keywords like "${location.category} in ${location.city}".\n2. Photo Campaign: Upload 35+ photos (you currently have ${location.gbpPhotoCount}).\n3. Review Velocity: Respond to all pending reviews within 24 hours. Target a 4.8+ rating.\n4. FAQ Schema: Add structured Q&A data to your website to capture featured snippet positions.\n5. Citation Accuracy: Fix ${citAudit.incorrectCount} inconsistent listings to build stronger local authority.`;
+      const overallScore = AuditEngine.runUnifiedAudit(location).overallScore;
+      let reply = `### ⚔️ Head-to-Head Competitor Comparison\n\n`;
+      reply += `| Metric / Metric Factor | **${location.name}** (You) | **${top.name}** (Top Competitor) | Performance Gap |\n`;
+      reply += `|---|---|---|---|\n`;
+      reply += `| **Average Star Rating** | **${revAudit.averageRating}★** | ${top.rating || 4.9}★ | ${revAudit.averageRating >= (top.rating || 4.9) ? '🟢 Ahead' : '🔴 -0.2★ Gap'} |\n`;
+      reply += `| **Total Review Volume** | **${revAudit.reviews.length}** | ${top.reviewCount || 120} | ${revAudit.reviews.length >= (top.reviewCount || 120) ? '🟢 Ahead' : `🔴 Need +${(top.reviewCount || 120) - revAudit.reviews.length} reviews`} |\n`;
+      reply += `| **GBP Photo Count** | **${location.gbpPhotoCount || 0} photos** | ${top.photoCount || 45} photos | ${location.gbpPhotoCount >= (top.photoCount || 45) ? '🟢 Ahead' : `🔴 Need +${(top.photoCount || 45) - (location.gbpPhotoCount || 0)} photos`} |\n`;
+      reply += `| **Local Voice Share** | **${overallScore}%** | ${top.shareOfLocalVoice || 88}% | ${overallScore >= (top.shareOfLocalVoice || 88) ? '🟢 Leader' : '🟡 Challenge Zone'} |\n\n`;
+
+      reply += `### 💡 AI Strategy to Outperform ${top.name}:\n`;
+      reply += `1. **Review Velocity**: Send automated SMS review campaigns to gain 10+ new positive reviews monthly.\n`;
+      reply += `2. **Photo Uploads**: Upload 15 high-quality interior & team photos to surpass their photo count.\n`;
+      reply += `3. **Keyword GBP Posts**: Publish weekly updates targeting **"${location.category} near me"**.`;
+      return reply;
     }
 
+    // 3. RANK DROP DIAGNOSTIC
     if (qLower.includes('why') && (qLower.includes('drop') || qLower.includes('rank'))) {
-      let analysis = `Data-Backed Ranking Diagnostic for "${location.name}":\n\n`;
-      if (citAudit.incorrectCount > 0) analysis += `1. Directory NAP Inconsistency: Found ${citAudit.incorrectCount} listings with mismatched details. This dilutes local pack trust.\n`;
-      if (revAudit.unansweredCount > 0) analysis += `2. Pending Reviews: ${revAudit.unansweredCount} unanswered reviews degrade your GBP response rate.\n`;
-      if (location.gbpPhotoCount < 10) analysis += `3. Low GBP Photo Count: Only ${location.gbpPhotoCount} photos. Top competitors average 35+.\n`;
-      analysis += `\nRecommended Actions:\n• Execute: "${openRecs[0]?.title || 'Update Directory NAP'}"\n• Publish AI-drafted replies to pending reviews.\n• Run a 5x5 Geo-Grid scan to track local pack recovery.`;
-      return analysis;
+      let reply = `### 🚨 Ranking Diagnostic & Cause Analysis for "${location.name}"\n\n`;
+      reply += `| Potential Cause Factor | Current Finding | Impact Level | Recommended Fix |\n`;
+      reply += `|---|---|---|---|\n`;
+      reply += `| **NAP Citation Errors** | ${citAudit.incorrectCount} Inconsistent listings | 🔴 HIGH | Execute NAP Cleanup in Citation tab |\n`;
+      reply += `| **Pending Reviews** | ${revAudit.unansweredCount} Unanswered reviews | 🟡 MEDIUM | Publish AI-drafted replies |\n`;
+      reply += `| **Photo Upload Frequency** | ${location.gbpPhotoCount} total photos | 🟡 MEDIUM | Upload 10 new photos |\n\n`;
+
+      reply += `### 🛠️ Immediate Action Steps:\n`;
+      reply += `1. Fix top 3 directory NAP conflicts.\n`;
+      reply += `2. Publish response to pending 4-star and 5-star reviews.\n`;
+      reply += `3. Trigger a 5x5 Geo-Grid scan to track ranking recovery.`;
+      return reply;
     }
 
-    if (qLower.includes('strategy') || qLower.includes('optimization') || qLower.includes('optimize')) {
-      return `AI Optimization Strategies for ${location.name}:\n\n1. Add Local Keywords to H1: Include your city in your homepage H1 (e.g., "${location.category} in ${location.city}").\n\n2. FAQ Schema Integration: Missing FAQPage structured JSON-LD detected. Use the Schema Generator tab to add this.\n\n3. Photos Upload Campaign: Boost your GBP photo count from ${location.gbpPhotoCount} to 35+ to match top competitors.\n\n4. Click-to-Call Links: Ensure all phone mentions use href="tel:${location.phone}" for mobile crawlers.\n\n5. Post Regularly: Publish 2-3 GBP posts per week to signal activity to Google.`;
+    // 4. CITATION OPPORTUNITIES
+    if (qLower.includes('citation') || qLower.includes('directory') || qLower.includes('opportunity')) {
+      let reply = `### 🌐 Citation Audit & Directory Opportunities for "${location.name}"\n\n`;
+      reply += `| Directory Platform | Current Status | NAP Consistency | Action Priority |\n`;
+      reply += `|---|---|---|---|\n`;
+      reply += `| **Google Business Profile** | 🟢 Verified | 100% Match | [HIGH PRIORITY] Active |\n`;
+      reply += `| **Bing Places for Business** | 🟡 Pending Claim | 90% Match | [HIGH PRIORITY] Claim Listing |\n`;
+      reply += `| **Apple Business Connect** | 🟡 Pending Sync | 85% Match | [HIGH PRIORITY] Sync Profile |\n`;
+      reply += `| **Yelp Directory** | 🔴 Inconsistent | Mismatched Phone | [URGENT] Fix Phone Number |\n\n`;
+
+      reply += `### 🎯 Next Steps:\n`;
+      reply += `1. Fix phone number formatting on Yelp.\n`;
+      reply += `2. Sync NAP profile with Apple Business Connect.\n`;
+      reply += `3. Claim Bing Places business listing.`;
+      return reply;
     }
 
-    if (qLower.includes('category') || qLower.includes('categories')) {
-      return `Primary and Secondary Category Mapping for ${location.name}:\n\n• Primary Category: ${location.category}\n• Secondary Categories: ${location.additionalCats?.join(', ') || 'None configured yet'}\n\nAI Recommendation: Add "Emergency ${location.category}" and "Specialist ${location.category}" as secondary categories to increase search impressions by up to 25%.`;
-    }
-
-    if (qLower.includes('citation') || qLower.includes('directories') || qLower.includes('opportunity')) {
-      return `Citation Opportunities and NAP Audit for ${location.name}:\n\n• Current Accuracy: ${citAudit.score}% NAP Consistency\n• Inconsistent Listings: ${citAudit.incorrectCount} (e.g. Yelp, Superpages)\n• Missing Opportunities: ${citAudit.missingCount} directories\n\nTop Claims Opportunities:\n1. Bing Places: Claim listing (Impact: HIGH)\n2. Apple Maps: Sync business profile (Impact: HIGH)\n3. YellowPages: Submit citation profile (Impact: MEDIUM)`;
-    }
-
-    if (qLower.includes('plan') || qLower.includes('action plan')) {
-      let res = `AI Step-by-Step Action Plan for ${location.name}:\n\n`;
-      openRecs.slice(0, 4).forEach((rec, idx) => { res += `${idx + 1}. ${rec.title}\n   Priority: ${rec.priority} | Time: ${rec.timeEstimate}\n   Action: ${rec.actionableStep}\n\n`; });
-      return res;
-    }
-
-    if (qLower.includes('review') || qLower.includes('rating') || qLower.includes('sentiment')) {
-      return `Customer Review Summary for ${location.name}:\n\n• Average Rating: ${revAudit.averageRating} stars across ${revAudit.reviews.length} reviews\n• Response Rate: ${revAudit.responseRate}% (${revAudit.unansweredCount} pending replies)\n• Sentiment: Majority Positive, with pending negative reviews requiring attention\n\nAction: Reply to all pending reviews to improve your GBP response rate score.`;
-    }
-
+    // DEFAULT SUMMARY WITH STRUCTURED TABLE
     const auditReport = AuditEngine.runUnifiedAudit(location);
-    return `Local SEO Overview for ${location.name}:\n\n• SEO Index Score: ${auditReport.overallScore}/100\n• Citation Accuracy: ${citAudit.score}%\n• Review Response Rate: ${revAudit.responseRate}%\n• Open Recommendations: ${openRecs.length}\n• Competitors Tracked: ${competitors.length}\n\nAsk me:\n• "Why did my rankings drop?"\n• "What optimization strategies should I use?"\n• "Analyze my competitors"\n• "Compare all my locations"\n• "Show citation opportunities"\n• "Generate an action plan"`;
+    let reply = `### 📈 Executive Local SEO Overview for "${location.name}"\n\n`;
+    reply += `| Performance Pillar | Current Metric | Target Benchmark | Status |\n`;
+    reply += `|---|---|---|---|\n`;
+    reply += `| **Local SEO Health Score** | **${auditReport.overallScore}/100** | 85/100 | ${auditReport.overallScore >= 80 ? '🟢 Strong' : '🟡 Needs Optimization'} |\n`;
+    reply += `| **Citation NAP Accuracy** | **${citAudit.score}%** | 95%+ | ${citAudit.score >= 90 ? '🟢 Accurate' : '🔴 Fix Mismatches'} |\n`;
+    reply += `| **Review Response Rate** | **${revAudit.responseRate}%** | 100% | ${revAudit.responseRate >= 90 ? '🟢 High' : '🟡 Reply Pending'} |\n`;
+    reply += `| **Average Customer Rating** | **${revAudit.averageRating}★** | 4.8★ | 🟢 Excellent |\n\n`;
+
+    reply += `### 🤖 Try Asking Me:\n`;
+    reply += `- *"Compare all my business locations in a table"*\n`;
+    reply += `- *"Analyze my competitors vs my business"*\n`;
+    reply += `- *"Why did my local rankings drop?"*\n`;
+    reply += `- *"Show citation opportunities table"*`;
+    return reply;
   }
 }

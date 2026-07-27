@@ -61,7 +61,7 @@ export default function CitationBuilderPage() {
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Automated directory submissions & NAP citation push updates for{' '}
-            <span className="font-bold">{activeLocation.name}</span> (Competing with BrightLocal)
+            <span className="font-bold">{activeLocation.name}</span>
           </p>
         </div>
 

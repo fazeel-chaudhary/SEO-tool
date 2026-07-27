@@ -9,10 +9,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password';
+  const isStandalonePage = pathname === '/' || pathname === '/login' || pathname === '/register' || pathname === '/forgot-password';
 
-  if (isAuthPage) {
-    return <div className="min-h-screen bg-black">{children}</div>;
+  if (isStandalonePage) {
+    return <div className="min-h-screen bg-slate-950 text-white">{children}</div>;
   }
 
   return (

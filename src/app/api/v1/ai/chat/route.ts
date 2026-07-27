@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Helper: build a rich system prompt from all available business data
 function buildSystemPrompt(location: any, allLocations: any[], competitors: any[]): string {
@@ -35,25 +35,36 @@ function buildSystemPrompt(location: any, allLocations: any[], competitors: any[
 CURRENT DATE: ${now}
 
 YOUR ROLE:
-You have complete access to the business's profile data, performance metrics, and competitor intelligence. You act as a strategic business advisor â€” analyzing ALL available data, identifying critical issues, spotting opportunities, and delivering clear, prioritized, actionable recommendations.
+You have complete access to the business's profile data, performance metrics, and competitor intelligence. You act as a strategic business advisor — analyzing ALL available data, identifying critical issues, spotting opportunities, and delivering clear, prioritized, actionable recommendations.
 
-IMPORTANT OUTPUT RULES:
-- Never use markdown symbols like **, ##, ###, *, or _ in your response
-- Use plain numbered lists (1. 2. 3.) and bullet points (â€¢) only
-- Write in a professional, conversational tone â€” clear and direct
-- Always structure your response with labeled sections (e.g., "Profile Analysis:", "Competitor Comparison:", "Top Recommendations:")
-- Be specific with numbers and data â€” do not give generic advice
+CRITICAL FORMATTING RULES & COMPARISON TABLE DIRECTIVES:
+1. ALWAYS use clean Markdown formatting:
+   - Use bold text **like this** for key terms, metrics, and labels.
+   - Use Markdown Headers (### Header) for section titles.
+   - Use structured lists (1., 2., 3. or - ) for action items.
+2. MANDATORY TABLES FOR COMPARISONS:
+   Whenever the user asks for a comparison (comparing locations, comparing against competitors, comparing metrics, citations, or categories), YOU MUST PROVIDE A PROPER MARKDOWN TABLE:
+   
+   Example Table Format:
+   | Metric / Factor | ${location.name} | Competitor 1 | Status / Gap |
+   |---|---|---|---|
+   | SEO Score | 82/100 | 91/100 | -9 pts gap |
+   | Average Rating | ${location.averageRating ?? '4.8'}★ | 4.9★ | 0.1★ lower |
+   | Review Count | ${location.reviewCount ?? '45'} | 120 | Need +75 reviews |
+   | Photo Count | ${location.gbpPhotoCount ?? 0} | 45 | Need +35 photos |
+   
+3. Always include 3 clear "Next Action Steps Today" at the end of your response.
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+─────────────────────────────────────────
 ACTIVE BUSINESS PROFILE DATA
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+─────────────────────────────────────────
 Business Name: ${location.name}
 Primary Category: ${location.category}
 Additional Categories: ${location.additionalCats?.join(', ') || 'None configured'}
 Full Address: ${location.address}, ${location.city}, ${location.state} ${location.zip}
 Phone: ${location.phone}
-Website: ${location.website || 'NOT CONFIGURED â€” CRITICAL ISSUE'}
-GBP Status: ${location.gbpConnected ? 'Connected' : 'NOT CONNECTED â€” CRITICAL ISSUE'}
+Website: ${location.website || 'NOT CONFIGURED — CRITICAL ISSUE'}
+GBP Status: ${location.gbpConnected ? 'Connected' : 'NOT CONNECTED — CRITICAL ISSUE'}
 GBP Verification: ${location.gbpStatus || 'Unknown'}
 Business Hours: ${location.gbpHours || 'Not set'}
 Photo Count: ${location.gbpPhotoCount ?? 0} photos (Benchmark: 35+ recommended)
@@ -61,35 +72,24 @@ Post Count: ${location.gbpPostCount ?? 0} posts
 Last GBP Post Date: ${location.gbpLastPostDate || 'Never posted'}
 Google Place ID: ${location.placeId || 'Not linked'}
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+─────────────────────────────────────────
 PERFORMANCE METRICS (FROM PLATFORM DATA)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+─────────────────────────────────────────
 ${location.citationScore !== undefined ? `Citation NAP Accuracy: ${location.citationScore}%` : 'Citation data: Available via platform audit'}
 ${location.reviewResponseRate !== undefined ? `Review Response Rate: ${location.reviewResponseRate}%` : 'Review data: Available via platform audit'}
 ${location.averageRating !== undefined ? `Average Star Rating: ${location.averageRating}` : ''}
 ${location.overallScore !== undefined ? `Overall Local SEO Score: ${location.overallScore}/100` : ''}
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+─────────────────────────────────────────
 COMPETITOR INTELLIGENCE (${competitors.length} tracked)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+─────────────────────────────────────────
 ${competitorBlock}
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+─────────────────────────────────────────
 ALL BUSINESS LOCATIONS (${allLocations?.length || 1} total)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+─────────────────────────────────────────
 ${multiLocBlock}
-
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-YOUR ANALYSIS APPROACH
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-When answering, always:
-1. Reference the specific business data above â€” not generic advice
-2. Compare the profile against competitor benchmarks where relevant
-3. Prioritize recommendations by impact (HIGH / MEDIUM / LOW)
-4. If asking about a specific location, focus on that location's data but reference the others for context
-5. For competitor questions, provide a head-to-head comparison table in plain text format
-6. Flag any CRITICAL issues (no website, GBP not connected, 0 photos, etc.) at the top of your response
-7. End every response with 3 specific "Next Action Steps" the user should do TODAY`;
+`;
 }
 
 export async function POST(request: NextRequest) {
@@ -124,8 +124,8 @@ export async function POST(request: NextRequest) {
           },
           body: JSON.stringify({
             model: 'gpt-4o',
-            temperature: 0.4,
-            max_tokens: 900,
+            temperature: 0.3,
+            max_tokens: 1200,
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: query }
@@ -140,18 +140,18 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ status: 'success', answer: content, source: 'openai-live' });
           }
         } else {
-          console.warn('OpenAI api warning:', await response.text());
+          console.warn('OpenAI api notice:', response.statusText);
         }
       } catch (err) {
         console.warn('OpenAI fetch error:', err);
       }
     }
 
-    // 2. Try Gemini 1.5 Flash
+    // 2. Try Gemini (1.5 / 2.0 Flash)
     if (geminiKey) {
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -162,8 +162,8 @@ export async function POST(request: NextRequest) {
                 }]
               }],
               generationConfig: {
-                temperature: 0.4,
-                maxOutputTokens: 900,
+                temperature: 0.3,
+                maxOutputTokens: 1200,
               }
             })
           }
@@ -176,10 +176,10 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ status: 'success', answer: content, source: 'gemini-live' });
           }
         } else {
-          console.warn('Gemini api warning:', await response.text());
+          console.warn('Gemini api notice:', response.statusText);
         }
       } catch (err) {
-        console.warn('Gemini fetch error:', err);
+        console.warn('Gemini fetch notice:', err);
       }
     }
 
@@ -194,4 +194,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

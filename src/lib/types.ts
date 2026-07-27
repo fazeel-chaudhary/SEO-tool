@@ -11,7 +11,10 @@ export type CitationStatus = 'CORRECT' | 'INCORRECT' | 'MISSING' | 'DUPLICATE';
 export type Sentiment = 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';
 export type ReplyStatus = 'UNANSWERED' | 'REPLIED';
 
-export type GridSize = '3x3' | '5x5' | '7x7';
+export type GridSize = '3x3' | '5x5' | '7x7' | '9x9' | '11x11' | '13x13' | '15x15';
+
+export type CenterMode = 'BUSINESS_LOCATION' | 'CITY_CENTER' | 'ZIP_CODE' | 'CUSTOM_COORDS';
+export type DeviceType = 'DESKTOP' | 'MOBILE';
 
 export interface User {
   id: string;
@@ -79,11 +82,55 @@ export interface RankingSnapshot {
   locationId: string;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  folderName: string;
+  description?: string;
+  isFavorite?: boolean;
+  isArchived?: boolean;
+  assignedUserIds: string[];
+  locationIds: string[];
+  organizationId: string;
+  createdAt: string;
+}
+
+export interface GridScanSchedule {
+  id: string;
+  locationId: string;
+  keywordTerm: string;
+  gridSize: GridSize;
+  radiusMiles: number;
+  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  emailRecipients: string[];
+  active: boolean;
+  lastRunAt?: string;
+  nextRunAt: string;
+  createdAt: string;
+}
+
+export interface NodeCompetitor {
+  rank: number;
+  name: string;
+  category: string;
+  rating: number;
+  reviews: number;
+  photos: number;
+  distance: string;
+  address?: string;
+}
+
 export interface GridPoint {
   lat: number;
   lng: number;
   position: number | null;
+  organicPosition?: number | null;
+  address?: string;
   label?: string;
+  competitors?: NodeCompetitor[];
+  deviceType?: DeviceType;
+  isCenterNode?: boolean;
+  isDisabled?: boolean;
 }
 
 export interface GeoGridScan {
@@ -94,11 +141,19 @@ export interface GeoGridScan {
   radiusMiles: number;
   centerLat: number;
   centerLng: number;
+  centerMode?: CenterMode;
+  deviceType?: DeviceType;
+  searchEngine?: string;
   averageRank: number;
+  highestRank?: number;
+  lowestRank?: number;
+  visibilityScore?: number;
   shareOfLocalVoice: number;
   volatilityScore: number;
   projectedTrend: number;
   points: GridPoint[];
+  bestArea?: string;
+  weakArea?: string;
   scannedAt: string;
 }
 

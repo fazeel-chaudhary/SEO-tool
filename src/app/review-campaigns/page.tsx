@@ -63,7 +63,7 @@ export default function ReviewCampaignsPage() {
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Automated SMS & Email review request funnels for{' '}
-            <span className="font-bold">{activeLocation.name}</span> (Competing with Whitespark)
+            <span className="font-bold">{activeLocation.name}</span>
           </p>
         </div>
 
