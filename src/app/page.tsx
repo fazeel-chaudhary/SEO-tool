@@ -62,14 +62,14 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2.5">
-            <div className="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center shadow-lg shadow-brand-500/30">
-              <Navigation className="w-5 h-5 text-white" />
+            <div className="w-11 h-11 rounded-full bg-white dark:bg-slate-800 border border-brand-500/30 p-1 flex items-center justify-center shadow-md shadow-brand-500/10 shrink-0">
+              <img src="/logo.png" className="w-full h-full object-contain rounded-full" alt="Local SEO OS Logo" />
             </div>
             <div>
               <span className="font-black text-lg text-slate-950 dark:text-white tracking-tight block leading-none">
                 LOCAL SEO <span className="text-brand-500">OS</span>
               </span>
-              <span className="text-[10px] text-brand-700 dark:text-brand-400 font-bold uppercase tracking-wider block">
+              <span className="text-[10px] text-brand-700 dark:text-brand-400 font-bold uppercase tracking-wider block mt-0.5">
                 Multi-Tenant Geo-Grid Platform
               </span>
             </div>
@@ -500,9 +500,9 @@ export default function HomePage() {
       {/* 📄 FOOTER */}
       <footer className="py-12 px-4 lg:px-8 bg-greenAccent dark:bg-slate-950 border-t border-brand-500/20 dark:border-slate-900 text-xs text-slate-900 dark:text-slate-400 transition-colors duration-200">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-6">
-          <div className="flex items-center space-x-2">
-            <div className="w-7 h-7 rounded-full bg-brand-500 flex items-center justify-center shadow-md">
-              <Navigation className="w-4 h-4 text-white" />
+          <div className="flex items-center space-x-2.5">
+            <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-brand-500/30 p-0.5 flex items-center justify-center shadow-sm shrink-0">
+              <img src="/logo.png" className="w-full h-full object-contain rounded-full" alt="Local SEO OS Logo" />
             </div>
             <span className="font-black text-slate-950 dark:text-white text-sm">LOCAL SEO OS</span>
           </div>

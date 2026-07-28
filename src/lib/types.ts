@@ -175,6 +175,22 @@ export interface CompetitorMetric {
   citationCount?: number;
   websiteUrl?: string;
   mapsUrl?: string;
+  placeId?: string;
+  cid?: string;
+  phone?: string;
+  businessHours?: string;
+  secondaryCategories?: string[];
+  reviewGrowthRate?: string;
+  mapRankPosition?: number;
+  distanceMiles?: number;
+  qnaCount?: number;
+  confidenceScore?: number;
+  verificationStatus?: 'VERIFIED' | 'NEEDS_VERIFICATION';
+  isPinned?: boolean;
+  isLocked?: boolean;
+  isPermanentlyClosed?: boolean;
+  aiValidated?: boolean;
+  aiValidationNotes?: string;
   locationId: string;
   createdAt: string;
 }
