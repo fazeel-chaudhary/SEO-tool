@@ -111,12 +111,12 @@ export default function ReviewsPage() {
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Response Rate
+            Replied Reviews
           </span>
           <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
-            {revAuditStats.responseRate}%
+            {reviews.length - revAuditStats.unansweredCount}
           </div>
-          <span className="text-[11px] text-slate-500 font-medium">Google Maps Trust Signal</span>
+          <span className="text-[11px] text-slate-500 font-medium">Verified AI Responses</span>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm">

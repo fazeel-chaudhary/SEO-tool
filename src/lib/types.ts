@@ -166,12 +166,15 @@ export interface CompetitorMetric {
   rating: number;
   reviewCount: number;
   photoCount: number;
-  postFrequencyPerMonth: number;
+  totalPosts: number;
+  postFrequencyPerMonth?: number;
   shareOfLocalVoice: number;
   domainAuthority?: number;
   backlinkCount?: number;
   organicTraffic?: number;
   citationCount?: number;
+  websiteUrl?: string;
+  mapsUrl?: string;
   locationId: string;
   createdAt: string;
 }
@@ -225,7 +228,21 @@ export interface Citation {
     phone: string;
   };
   status: CitationStatus;
+  listingStatus?: 'APPROVED' | 'SUBMITTED' | 'PENDING' | 'REJECTED' | 'NOT_LISTED' | 'DUPLICATE' | 'INCORRECT';
   confidenceScore: number;
+  domainAuthority?: number;
+  trustScore?: number;
+  country?: string;
+  isFree?: boolean;
+  submissionCost?: string;
+  dateAdded?: string;
+  lastUpdated?: string;
+  isCompetitorOnly?: boolean;
+  competitorsListed?: string[];
+  aiRecommendation?: string;
+  aiPriority?: 'HIGH' | 'MEDIUM' | 'LOW';
+  missingInformation?: string[];
+  suggestedImprovement?: string;
   locationId: string;
   updatedAt: string;
 }
@@ -239,6 +256,52 @@ export interface CitationSubmission {
   submittedAt: string;
   liveUrl?: string;
   locationId: string;
+}
+
+export interface DIYCitationOpportunity {
+  id: string;
+  directoryName: string;
+  domain: string;
+  domainAuthority: number;
+  trustScore: number;
+  country: string;
+  category: string;
+  seoValue: 'EXCEPTIONAL' | 'HIGH' | 'MEDIUM';
+  isFree: boolean;
+  submissionCost?: string;
+  submissionUrl: string;
+  whyRecommended: string;
+  isCompetitorGap: boolean;
+  competitorName?: string;
+  rankingImpactScore: number;
+  status: 'RECOMMENDED' | 'IN_PROGRESS' | 'COMPLETED' | 'IGNORED';
+  proofUrl?: string;
+  completedAt?: string;
+  locationId: string;
+}
+
+export interface DFYCitationSubmissionItem {
+  id: string;
+  directoryName: string;
+  domain: string;
+  domainAuthority: number;
+  liveUrl?: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+  rejectionReason?: string;
+  proofScreenshotUrl?: string;
+  submittedAt?: string;
+  approvedAt?: string;
+}
+
+export interface DFYCitationOrder {
+  id: string;
+  locationId: string;
+  packageCount: number;
+  totalCost: number;
+  orderStatus: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+  orderedAt: string;
+  completedAt?: string;
+  items: DFYCitationSubmissionItem[];
 }
 
 export interface ReviewCampaign {

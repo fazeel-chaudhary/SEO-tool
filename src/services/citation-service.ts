@@ -44,6 +44,18 @@ export class CitationService {
         napData.name = `${location.name} Inc`;
       }
 
+      const listingStatus: Citation['listingStatus'] =
+        status === 'CORRECT'
+          ? 'APPROVED'
+          : status === 'INCORRECT'
+          ? 'INCORRECT'
+          : status === 'MISSING'
+          ? (idx % 3 === 0 ? 'PENDING' : 'NOT_LISTED')
+          : 'DUPLICATE';
+
+      const isCompetitorOnly = status === 'MISSING' && idx % 2 === 0;
+      const competitorsListed = isCompetitorOnly ? ['Austin Premier Smiles', 'Central Texas Dental Care'] : [];
+
       const citation: Citation = {
         id: `cit-aud-${location.id}-${idx}`,
         directoryName: directory.name,
@@ -52,7 +64,28 @@ export class CitationService {
         url: status === 'MISSING' ? '' : `https://${directory.domain}/biz/${location.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
         napData,
         status,
+        listingStatus,
         confidenceScore: confidence,
+        domainAuthority: Math.max(45, 96 - (idx * 2) % 45),
+        trustScore: Math.max(50, 98 - (idx * 2) % 40),
+        country: idx % 6 === 0 ? 'Global' : idx % 8 === 0 ? 'Canada' : 'United States',
+        isFree: idx % 5 !== 0,
+        submissionCost: idx % 5 === 0 ? '$29/yr' : 'Free Listing',
+        dateAdded: '2026-05-10T10:00:00Z',
+        lastUpdated: '2026-07-28T14:30:00Z',
+        isCompetitorOnly,
+        competitorsListed,
+        aiRecommendation:
+          status === 'MISSING'
+            ? 'High impact tier-1 local citation opportunity. Competitors rank here.'
+            : status === 'INCORRECT'
+            ? 'Correct address & ZIP code mismatch to boost NAP consistency score.'
+            : status === 'DUPLICATE'
+            ? 'Suppress duplicate entry to prevent local rank cannibalization.'
+            : 'Active & verified listing matching single source of truth.',
+        aiPriority: idx % 3 === 0 ? 'HIGH' : idx % 3 === 1 ? 'MEDIUM' : 'LOW',
+        missingInformation: status === 'INCORRECT' ? ['Suite Number missing', 'Zip code omitted'] : status === 'MISSING' ? ['Full business listing missing'] : [],
+        suggestedImprovement: status === 'CORRECT' ? 'Add 5 business photos and holiday operating hours' : 'Execute one-click NAP synchronization',
         locationId: location.id,
         updatedAt: new Date().toISOString(),
       };

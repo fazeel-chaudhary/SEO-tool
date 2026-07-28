@@ -15,6 +15,9 @@ import {
   WebhookEndpoint,
   WhiteLabelSettings,
   CitationSubmission,
+  DIYCitationOpportunity,
+  DFYCitationOrder,
+  DFYCitationSubmissionItem,
   ReviewCampaign,
   DuplicateListing,
   IntegrationConnector,
@@ -41,6 +44,8 @@ import {
   INITIAL_WEBHOOKS,
   INITIAL_WHITE_LABEL,
   INITIAL_CITATION_SUBMISSIONS,
+  INITIAL_DIY_OPPORTUNITIES,
+  INITIAL_DFY_ORDERS,
   INITIAL_REVIEW_CAMPAIGNS,
   INITIAL_DUPLICATE_LISTINGS,
   INITIAL_AI_PROMPTS,
@@ -234,6 +239,36 @@ export class AppStore {
     else all.push(citation);
     setStored(STORAGE_KEYS.CITATIONS, all);
     return citation;
+  }
+
+  static getDIYOpportunities(locationId?: string): DIYCitationOpportunity[] {
+    const all = getStored('seo_os_diy_opportunities', INITIAL_DIY_OPPORTUNITIES);
+    if (!locationId) return all;
+    return all.filter((o: any) => o.locationId === locationId);
+  }
+
+  static saveDIYOpportunity(opportunity: DIYCitationOpportunity): DIYCitationOpportunity {
+    const all = getStored('seo_os_diy_opportunities', INITIAL_DIY_OPPORTUNITIES);
+    const index = all.findIndex((o: any) => o.id === opportunity.id);
+    if (index >= 0) all[index] = opportunity;
+    else all.unshift(opportunity);
+    setStored('seo_os_diy_opportunities', all);
+    return opportunity;
+  }
+
+  static getDFYOrders(locationId?: string): DFYCitationOrder[] {
+    const all = getStored('seo_os_dfy_orders', INITIAL_DFY_ORDERS);
+    if (!locationId) return all;
+    return all.filter((o: any) => o.locationId === locationId);
+  }
+
+  static saveDFYOrder(order: DFYCitationOrder): DFYCitationOrder {
+    const all = getStored('seo_os_dfy_orders', INITIAL_DFY_ORDERS);
+    const index = all.findIndex((o: any) => o.id === order.id);
+    if (index >= 0) all[index] = order;
+    else all.unshift(order);
+    setStored('seo_os_dfy_orders', all);
+    return order;
   }
 
   static getReviews(locationId?: string): Review[] {

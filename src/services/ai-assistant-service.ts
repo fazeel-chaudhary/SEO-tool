@@ -153,7 +153,6 @@ export class AiAssistantService {
     reply += `|---|---|---|---|\n`;
     reply += `| **Local SEO Health Score** | **${auditReport.overallScore}/100** | 85/100 | ${auditReport.overallScore >= 80 ? '🟢 Strong' : '🟡 Needs Optimization'} |\n`;
     reply += `| **Citation NAP Accuracy** | **${citAudit.score}%** | 95%+ | ${citAudit.score >= 90 ? '🟢 Accurate' : '🔴 Fix Mismatches'} |\n`;
-    reply += `| **Review Response Rate** | **${revAudit.responseRate}%** | 100% | ${revAudit.responseRate >= 90 ? '🟢 High' : '🟡 Reply Pending'} |\n`;
     reply += `| **Average Customer Rating** | **${revAudit.averageRating}★** | 4.8★ | 🟢 Excellent |\n\n`;
 
     reply += `### 🤖 Try Asking Me:\n`;

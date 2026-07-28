@@ -23,7 +23,6 @@ function buildSystemPrompt(location: any, allLocations: any[], competitors: any[
   Location ${i + 1}: ${l.name} (${l.city}, ${l.state})
     - SEO Score: ${l.overallScore ?? 'N/A'}/100
     - Citation Accuracy: ${l.citationScore ?? 'N/A'}%
-    - Review Response Rate: ${l.reviewResponseRate ?? 'N/A'}%
     - Average Rating: ${l.averageRating ?? 'N/A'}
     - GBP Connected: ${l.gbpConnected ? 'Yes' : 'No'}
     - Photos: ${l.gbpPhotoCount ?? 0}
@@ -76,7 +75,6 @@ Google Place ID: ${location.placeId || 'Not linked'}
 PERFORMANCE METRICS (FROM PLATFORM DATA)
 ─────────────────────────────────────────
 ${location.citationScore !== undefined ? `Citation NAP Accuracy: ${location.citationScore}%` : 'Citation data: Available via platform audit'}
-${location.reviewResponseRate !== undefined ? `Review Response Rate: ${location.reviewResponseRate}%` : 'Review data: Available via platform audit'}
 ${location.averageRating !== undefined ? `Average Star Rating: ${location.averageRating}` : ''}
 ${location.overallScore !== undefined ? `Overall Local SEO Score: ${location.overallScore}/100` : ''}
 
