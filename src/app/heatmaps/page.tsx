@@ -52,6 +52,8 @@ export default function HeatmapsPage() {
   const [selectedKeyword, setSelectedKeyword] = useState<string>('');
   const [gridSize, setGridSize] = useState<GridSize>('5x5');
   const [radiusMiles, setRadiusMiles] = useState<number>(2.0);
+  const [isCustomRadius, setIsCustomRadius] = useState<boolean>(false);
+  const [customRadiusInput, setCustomRadiusInput] = useState<string>('2.0');
   const [centerMode, setCenterMode] = useState<CenterMode>('BUSINESS_LOCATION');
   const [deviceType, setDeviceType] = useState<DeviceType>('MOBILE');
 
@@ -640,19 +642,59 @@ export default function HeatmapsPage() {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Radius (Miles)</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1 flex justify-between items-center">
+                    <span>Radius (Miles)</span>
+                    {radiusMiles && <span className="text-[10px] text-brand-600 dark:text-brand-400 font-extrabold">{radiusMiles} mi</span>}
+                  </label>
                   <select
-                    value={radiusMiles}
-                    onChange={(e) => setRadiusMiles(parseFloat(e.target.value))}
+                    value={isCustomRadius ? 'CUSTOM' : radiusMiles}
+                    onChange={(e) => {
+                      if (e.target.value === 'CUSTOM') {
+                        setIsCustomRadius(true);
+                      } else {
+                        setIsCustomRadius(false);
+                        const val = parseFloat(e.target.value);
+                        setRadiusMiles(val);
+                        setCustomRadiusInput(val.toString());
+                      }
+                    }}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2 font-semibold"
                   >
                     <option value={0.5}>0.5 Miles</option>
                     <option value={1.0}>1.0 Mile</option>
                     <option value={2.0}>2.0 Miles</option>
+                    <option value={3.0}>3.0 Miles</option>
                     <option value={5.0}>5.0 Miles</option>
+                    <option value={7.5}>7.5 Miles</option>
                     <option value={10.0}>10.0 Miles</option>
                     <option value={15.0}>15.0 Miles</option>
+                    <option value={20.0}>20.0 Miles</option>
+                    <option value="CUSTOM">✏️ Custom Radius...</option>
                   </select>
+
+                  {isCustomRadius && (
+                    <div className="mt-2 space-y-1">
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0.1"
+                        max="100"
+                        placeholder="Enter custom radius (e.g. 3.5)"
+                        value={customRadiusInput}
+                        onChange={(e) => {
+                          setCustomRadiusInput(e.target.value);
+                          const parsed = parseFloat(e.target.value);
+                          if (!isNaN(parsed) && parsed > 0) {
+                            setRadiusMiles(parsed);
+                          }
+                        }}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2 font-bold focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                      />
+                      <span className="text-[10px] text-slate-400 font-medium block">
+                        Geodesic offset math will accurately map grid nodes for {radiusMiles} mi.
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
