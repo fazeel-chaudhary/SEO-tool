@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useOrg } from '@/context/org-context';
 import { POLAR_PLANS } from '@/lib/polar';
-import { CreditCard, CheckCircle2, Shield, Zap, Check, ArrowRight } from 'lucide-react';
+import { CreditCard, CheckCircle2, Shield, RefreshCw, Check, ArrowRight } from 'lucide-react';
 import { AppStore } from '@/services/store';
 
 type PlanType = typeof POLAR_PLANS.STARTER_BUSINESS;
@@ -209,7 +209,7 @@ export default function BillingPage() {
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center">
-                <Zap className="w-5 h-5 mr-2 text-brand-500" />
+                <CreditCard className="w-5 h-5 mr-2 text-brand-500" />
                 Confirm Plan Switch
               </h2>
               <button
@@ -338,7 +338,7 @@ export default function BillingPage() {
                 id="confirm-plan-change-btn"
               >
                 {isProcessing ? (
-                  <><Zap className="w-3.5 h-3.5 animate-pulse" /><span>Processing Payment...</span></>
+                  <><RefreshCw className="w-3.5 h-3.5 animate-spin" /><span>Processing Payment...</span></>
                 ) : (
                   <><CreditCard className="w-3.5 h-3.5" /><span>Pay &amp; Activate Plan</span></>
                 )}

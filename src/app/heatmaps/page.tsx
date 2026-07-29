@@ -28,7 +28,6 @@ import {
   Download,
   Share2,
   Mail,
-  Zap,
   ArrowRightLeft,
   Trash2,
   Filter,

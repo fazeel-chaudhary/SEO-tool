@@ -16,13 +16,11 @@ import {
   FileSpreadsheet,
   Award,
   TrendingUp,
-  Sparkles,
   Layers,
   ChevronRight,
   Globe,
   Sliders,
   Check,
-  Zap,
   BarChart3,
   MessageSquare,
   Lock,
@@ -66,7 +64,7 @@ export default function HomePage() {
               <img src="/logo.png" className="w-full h-full object-contain rounded-full" alt="Local SEO OS Logo" />
             </div>
             <div>
-              <span className="font-black text-lg text-slate-950 dark:text-white tracking-tight block leading-none">
+              <span className="font-black text-lg text-slate-950 dark:text-white tracking-tight block leading-none whitespace-nowrap">
                 LOCAL SEO <span className="text-brand-500">OS</span>
               </span>
               <span className="text-[10px] text-brand-700 dark:text-brand-400 font-bold uppercase tracking-wider block mt-0.5">

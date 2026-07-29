@@ -15,7 +15,6 @@ import {
   ArrowDownRight,
   Minus,
   CheckCircle2,
-  Zap,
   Target,
   BarChart3,
   Award,
@@ -195,7 +194,7 @@ export default function RankTrackerPage() {
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
         <div>
           <h3 className="font-extrabold text-slate-900 dark:text-white text-base flex items-center">
-            <Zap className="w-5 h-5 mr-2 text-indigo-500" />
+            <TrendingUp className="w-5 h-5 mr-2 text-indigo-500" />
             AI Ranking Impact Predictor — "What will be my rank if I add a keyword?"
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -217,7 +216,7 @@ export default function RankTrackerPage() {
             disabled={!predictionInput.trim()}
             className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white font-bold px-5 py-2.5 rounded-xl shadow-sm transition-all flex items-center space-x-1.5"
           >
-            <Zap className="w-4 h-4" />
+            <Target className="w-4 h-4" />
             <span>Analyze Impact</span>
           </button>
         </div>

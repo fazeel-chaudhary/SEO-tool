@@ -470,6 +470,57 @@ export class AppStore {
     }
   }
 
+  static addDuplicateListing(dup: Omit<DuplicateListing, 'id' | 'detectedAt'>): DuplicateListing {
+    const all = getStored(STORAGE_KEYS.DUPLICATES, INITIAL_DUPLICATE_LISTINGS);
+    const newDup: DuplicateListing = {
+      ...dup,
+      id: `dup-${Date.now()}`,
+      detectedAt: new Date().toISOString(),
+    };
+    all.unshift(newDup);
+    setStored(STORAGE_KEYS.DUPLICATES, all);
+    return newDup;
+  }
+
+  static runDuplicateScan(locationId: string): DuplicateListing[] {
+    const all = getStored(STORAGE_KEYS.DUPLICATES, INITIAL_DUPLICATE_LISTINGS);
+    // Add mock scanned duplicates if less than 4 exist for location
+    const locationDups = all.filter((d) => d.locationId === locationId);
+    if (locationDups.length < 3) {
+      const mockScanResults: DuplicateListing[] = [
+        {
+          id: `dup-scan-${Date.now()}-1`,
+          directoryName: 'Yelp UK',
+          duplicateName: 'Manchester Smiles (Old Address)',
+          duplicateAddress: '14 Deansgate, Manchester M3 2GH',
+          duplicatePhone: '+44 161 555 0199',
+          duplicateUrl: 'https://yelp.co.uk/biz/manchester-smiles-old',
+          confidenceScore: 94,
+          cannibalizationRisk: 'HIGH',
+          suppressionStatus: 'DETECTED',
+          locationId,
+          detectedAt: new Date().toISOString(),
+        },
+        {
+          id: `dup-scan-${Date.now()}-2`,
+          directoryName: 'Google Maps',
+          duplicateName: 'Mcr Dental Clinic',
+          duplicateAddress: '10 Deansgate, Manchester M3 2GH',
+          duplicatePhone: '+44 161 555 0122',
+          duplicateUrl: 'https://maps.google.com/?cid=987654321',
+          confidenceScore: 88,
+          cannibalizationRisk: 'MEDIUM',
+          suppressionStatus: 'DETECTED',
+          locationId,
+          detectedAt: new Date().toISOString(),
+        },
+      ];
+      all.unshift(...mockScanResults);
+      setStored(STORAGE_KEYS.DUPLICATES, all);
+    }
+    return all.filter((d) => d.locationId === locationId);
+  }
+
   // Users Management (nested inside Orgs)
   static getUsers(orgId?: string): User[] {
     const orgs = this.getOrganizations();

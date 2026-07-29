@@ -20,7 +20,6 @@ import {
   ShoppingCart,
   FileSpreadsheet,
   Upload,
-  Zap,
   Check,
   XCircle,
   HelpCircle,
@@ -168,7 +167,7 @@ export default function CitationBuilderPage() {
         <div>
           <div className="flex items-center space-x-2">
             <span className="px-3 py-1 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 font-extrabold text-[11px] uppercase tracking-wider flex items-center">
-              <Zap className="w-3.5 h-3.5 mr-1" /> Dual-Mode Citation Strategy
+              <ShieldCheck className="w-3.5 h-3.5 mr-1" /> Dual-Mode Citation Strategy
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mt-2 flex items-center">

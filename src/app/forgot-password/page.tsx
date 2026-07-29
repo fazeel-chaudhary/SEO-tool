@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AuthService } from '@/services/auth-service';
-import { Zap, ShieldAlert, Mail, Lock, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Mail, Lock, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -120,7 +120,7 @@ export default function ForgotPasswordPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
         <div className="flex justify-center">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-brand-500/20">
-            <Zap className="w-6 h-6 fill-current" />
+            <ShieldCheck className="w-6 h-6" />
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-black text-white">Reset Your Password</h2>

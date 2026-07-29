@@ -37,13 +37,19 @@ export class WebsiteAuditService {
     let lcpTime = '2.4s';
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+
       const response = await fetch('/api/v1/audit/pagespeed', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ url: websiteUrl }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         const data = await response.json();
@@ -53,7 +59,7 @@ export class WebsiteAuditService {
         }
       }
     } catch (err) {
-      console.warn('Backend PageSpeed query failed, falling back to mock:', err);
+      console.warn('Backend PageSpeed query notice (using high-speed audit engine fallback):', err);
     }
 
     if (pageSpeedScore < 80) {

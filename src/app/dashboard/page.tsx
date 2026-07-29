@@ -20,7 +20,7 @@ import {
   Building2,
   Star,
   CheckSquare,
-  Zap,
+  Award,
 } from 'lucide-react';
 import {
   LineChart,
@@ -128,7 +128,7 @@ export default function DashboardPage() {
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Local SEO Index
             </span>
-            <Zap className="w-5 h-5 text-brand-500" />
+            <Award className="w-5 h-5 text-brand-500" />
           </div>
           <div className="my-3">
             <div className="text-4xl font-black text-brand-600 dark:text-brand-400">

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useOrg } from '@/context/org-context';
 import { AiContentService } from '@/services/ai-content-service';
-import { Copy, Check, FileText, Send, HelpCircle, Building2, Zap, Search, Layers, TrendingUp, DollarSign, Award, BookOpen, AlertTriangle } from 'lucide-react';
+import { Copy, Check, FileText, Send, HelpCircle, Building2, Search, Layers, TrendingUp, DollarSign, Award, BookOpen, AlertTriangle } from 'lucide-react';
 
 export default function ContentToolsPage() {
   const { activeLocation } = useOrg();
@@ -83,7 +83,7 @@ Looking for professional ${serviceName.toLowerCase()} in ${activeLocation.city}?
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center">
-            <Zap className="w-7 h-7 mr-2.5 text-brand-600 dark:text-brand-400" />
+            <FileText className="w-7 h-7 mr-2.5 text-brand-600 dark:text-brand-400" />
             Keyword Discovery & AI Content Studio
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">

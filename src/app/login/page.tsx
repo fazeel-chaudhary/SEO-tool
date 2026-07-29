@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AuthService } from '@/services/auth-service';
-import { Zap, ShieldAlert, Chrome, ArrowRight } from 'lucide-react';
+import { ShieldAlert, Chrome, ArrowRight } from 'lucide-react';
 import { AppStore } from '@/services/store';
 
 export default function LoginPage() {

@@ -30,7 +30,6 @@ import {
   Sliders,
   Settings,
   Mail,
-  Zap,
 } from 'lucide-react';
 
 export default function AdminPanelPage() {

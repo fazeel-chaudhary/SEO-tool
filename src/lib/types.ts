@@ -195,6 +195,145 @@ export interface CompetitorMetric {
   createdAt: string;
 }
 
+export interface CompetitorGbpAudit {
+  businessName: string;
+  primaryCategory: string;
+  secondaryCategories: string[];
+  description?: string;
+  services?: string[];
+  products?: string[];
+  phone?: string;
+  website?: string;
+  appointmentLink?: string;
+  businessHours?: string;
+  photosCount: number;
+  videosCount: number;
+  postsFrequency: string; // e.g. "2 posts / week"
+  totalPosts: number;
+  qnaCount: number;
+  reviewCount: number;
+  averageRating: number;
+  reviewResponseRate: number; // percentage e.g. 92
+  recentReviewsCount: number;
+  yearsInBusiness?: string;
+  attributes: string[]; // e.g. ["Wheelchair accessible", "Online appointments"]
+  serviceAreas: string[];
+}
+
+export interface CompetitorCitationDirectory {
+  directoryName: string;
+  liveUrl?: string;
+  status: 'ACTIVE' | 'MISSING' | 'NAP_INCONSISTENT';
+  napConsistent: boolean;
+  businessDescription?: string;
+  categories?: string[];
+  rating?: number;
+  authorityScore: number;
+}
+
+export interface CompetitorCitationAudit {
+  directories: CompetitorCitationDirectory[];
+  totalCitations: number;
+  missingCitationsCount: number;
+  citationAuthorityScore: number; // 0 - 100
+  citationConsistencyScore: number; // 0 - 100
+}
+
+export interface CompetitorWebsiteAudit {
+  domainAuthority: number;
+  pageAuthority: number;
+  websiteSpeedScore: number;
+  mobileFriendly: boolean;
+  https: boolean;
+  metaTitle: string;
+  metaDescription: string;
+  headingStructure: {
+    h1Count: number;
+    h2Count: number;
+    h1Text?: string;
+  };
+  schemaTypesFound: string[];
+  internalLinksCount: number;
+  externalLinksCount: number;
+  backlinksCount: number;
+  referringDomainsCount: number;
+  indexStatus: string;
+  coreWebVitals: {
+    lcp: string; // e.g. "1.8s"
+    fid: string; // e.g. "12ms"
+    cls: string; // e.g. "0.02"
+  };
+}
+
+export interface CompetitorReviewAudit {
+  googleReviewCount: number;
+  googleRating: number;
+  facebookReviewCount: number;
+  facebookRating: number;
+  yelpReviewCount: number;
+  yelpRating: number;
+  totalReviews: number;
+  averageRating: number;
+  reviewGrowthRate: string;
+  reviewFrequency: string;
+  responseRatePercent: number;
+  positiveKeywords: string[];
+  negativeKeywords: string[];
+  aiSentimentScore: number; // 0 - 100
+  aiSentimentLabel: 'VERY_POSITIVE' | 'POSITIVE' | 'NEUTRAL' | 'MIXED' | 'NEGATIVE';
+}
+
+export interface CompetitorLocalSeoAudit {
+  napConsistencyScore: number; // 0 - 100
+  categoriesOptimized: boolean;
+  localKeywordsRankedCount: number;
+  googlePostsActivityScore: number;
+  photosOptimizationScore: number;
+  qnaOptimizationScore: number;
+  localLandingPageExists: boolean;
+  locationPageExists: boolean;
+  localBusinessSchemaImplemented: boolean;
+  localBacklinksCount: number;
+  localSeoScore: number; // 0 - 100 total Local SEO Score
+}
+
+export interface DeepCompetitorAuditResult {
+  id: string;
+  competitorId: string;
+  competitorName: string;
+  auditedAt: string;
+  gbpAudit: CompetitorGbpAudit;
+  citationAudit: CompetitorCitationAudit;
+  websiteAudit: CompetitorWebsiteAudit;
+  reviewAudit: CompetitorReviewAudit;
+  localSeoAudit: CompetitorLocalSeoAudit;
+}
+
+export interface AiCompetitiveGapAnalysis {
+  rankingAdvantageAnswers: {
+    whyRankingAbove: string;
+    missingCitationsSummary: string;
+    rankingKeywordsSummary: string;
+    gbpOptimizationGap: string;
+    reviewGapSummary: string;
+    postFrequencyGap: string;
+    directoriesGap: string;
+    schemaGapSummary: string;
+  };
+  strengths: string[];
+  weaknesses: string[];
+}
+
+export interface AiActionItem {
+  id: string;
+  title: string;
+  description: string;
+  impact: 'HIGH' | 'MEDIUM' | 'LOW';
+  category: 'CITATIONS' | 'GBP' | 'POSTS' | 'REVIEWS' | 'SCHEMA' | 'BACKLINKS' | 'WEBSITE';
+  timeEstimate: string;
+  actionUrl?: string;
+}
+
 export interface WebsiteAuditResult {
   id: string;
   url: string;
@@ -338,7 +477,10 @@ export interface DuplicateListing {
   directoryName: string;
   duplicateName: string;
   duplicateAddress: string;
-  duplicatePhone: string;
+  duplicatePhone?: string;
+  duplicateUrl?: string;
+  confidenceScore?: number;
+  cannibalizationRisk?: 'HIGH' | 'MEDIUM' | 'LOW';
   suppressionStatus: 'DETECTED' | 'SUPPRESSION_REQUESTED' | 'SUPPRESSED';
   locationId: string;
   detectedAt: string;

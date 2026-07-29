@@ -7,7 +7,7 @@ import { AutomationService } from '@/services/automation-service';
 import { GbpService } from '@/services/gbp-service';
 import { AutomationRule, IntegrationConnector, NotificationItem } from '@/lib/types';
 import {
-  Zap,
+  Sliders,
   Play,
   CheckCircle2,
   Building2,
@@ -176,7 +176,7 @@ export default function AutomationPage() {
       {/* Page Header */}
       <div>
         <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center">
-          <Zap className="w-7 h-7 mr-2.5 text-brand-600 dark:text-brand-400 fill-brand-600/20" />
+          <Sliders className="w-7 h-7 mr-2.5 text-brand-600 dark:text-brand-400" />
           Automation & Integrations Control Center
         </h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">

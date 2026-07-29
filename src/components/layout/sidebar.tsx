@@ -13,7 +13,7 @@ import {
   Moon,
   Sun,
   ShieldCheck,
-  Zap,
+  Sliders,
   CreditCard,
   Globe,
   MessageSquare,
@@ -88,7 +88,7 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
     { label: 'Website Audit', href: '/website-audit', icon: Globe },
     { label: 'Backlinks & Outreach', href: '/backlinks', icon: Globe },
     { label: 'JSON-LD Schema', href: '/schema-generator', icon: Code2 },
-    { label: 'Automated Workflows', href: '/automation', icon: Zap },
+    { label: 'Automated Workflows', href: '/automation', icon: Sliders },
     { label: 'AI SEO Assistant', href: '/assistant', icon: Bot },
     { label: 'AI Content Studio', href: '/content-tools', icon: FileText },
     {
@@ -122,8 +122,8 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
             <img src="/logo.png" className="w-full h-full object-contain rounded-full" alt="Local SEO OS Logo" />
           </div>
           <div className="flex flex-col shrink-0">
-            <h1 className="font-black text-slate-900 dark:text-white leading-tight text-xs tracking-tight">
-              Local<br />SEO
+            <h1 className="font-black text-slate-900 dark:text-white leading-tight text-xs tracking-tight whitespace-nowrap">
+              Local SEO
             </h1>
             <span className="text-[9px] uppercase tracking-wider font-bold text-brand-600 dark:text-brand-400 whitespace-nowrap mt-1">
               Operating System

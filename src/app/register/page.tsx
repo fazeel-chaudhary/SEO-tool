@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AuthService } from '@/services/auth-service';
-import { Zap, ShieldAlert, Chrome, Compass, ArrowRight, ShieldCheck, Mail, Lock, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, Chrome, Compass, ArrowRight, ShieldCheck, Mail, Lock, CheckCircle2 } from 'lucide-react';
 import { AppStore } from '@/services/store';
 
 export default function RegisterPage() {

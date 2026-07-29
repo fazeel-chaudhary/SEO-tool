@@ -25,9 +25,16 @@ export default function WebsiteAuditPage() {
 
   useEffect(() => {
     if (activeLocation) {
-      WebsiteAuditService.runWebsiteAudit(activeLocation).then((res) => {
-        setAudit(res);
-      });
+      const cached = AppStore.getWebsiteAudit(activeLocation.id);
+      if (cached) {
+        setAudit(cached);
+      } else {
+        setIsAuditing(true);
+        WebsiteAuditService.runWebsiteAudit(activeLocation).then((res) => {
+          setAudit(res);
+          setIsAuditing(false);
+        });
+      }
     }
   }, [activeLocation]);
 
