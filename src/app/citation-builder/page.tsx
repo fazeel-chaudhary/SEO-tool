@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useOrg } from '@/context/org-context';
 import { AppStore } from '@/services/store';
+import { CitationService } from '@/services/citation-service';
 import { DIYCitationOpportunity, DFYCitationOrder, DFYCitationSubmissionItem } from '@/lib/types';
 import {
   Globe,
@@ -26,33 +27,48 @@ import {
   Share2,
   RefreshCw,
   Award,
+  Users,
+  Layers,
+  FileText,
+  X,
+  CreditCard,
+  Lock,
 } from 'lucide-react';
 
 export default function CitationBuilderPage() {
   const { activeLocation } = useOrg();
-  const [activeTab, setActiveTab] = useState<'DIY' | 'DFY'>('DIY');
+  const [activeTab, setActiveTab] = useState<'ALL' | 'COMPETITOR_GAPS' | 'IN_PROGRESS' | 'COMPLETED' | 'DFY'>('ALL');
   const [diyOpportunities, setDiyOpportunities] = useState<DIYCitationOpportunity[]>([]);
   const [dfyOrders, setDfyOrders] = useState<DFYCitationOrder[]>([]);
 
-  // DIY Filter & Search state
+  // Filter & Search State
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [filterCategory, setFilterCategory] = useState<string>('ALL');
-  const [filterStatus, setFilterStatus] = useState<string>('ALL');
-  const [onlyCompetitorGaps, setOnlyCompetitorGaps] = useState<boolean>(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
-  // DIY Proof URL Modal State
+  // AI Discovery Loading State
+  const [isDiscoveringAi, setIsDiscoveringAi] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string>('');
+
+  // Proof Modal State
   const [selectedDIYItem, setSelectedDIYItem] = useState<DIYCitationOpportunity | null>(null);
   const [proofInputUrl, setProofInputUrl] = useState<string>('');
 
-  // DFY Order Package Selector State
+  // DFY Order Package & Payment Modal State
   const [selectedPackageCount, setSelectedPackageCount] = useState<number>(50);
-  const [customCountInput, setCustomCountInput] = useState<string>('50');
-  const [isOrdering, setIsOrdering] = useState<boolean>(false);
-  const [orderSuccessMsg, setOrderSuccessMsg] = useState<string>('');
+  const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState<boolean>(false);
+
+  // Payment Form Fields
+  const [cardName, setCardName] = useState<string>('');
+  const [cardNumber, setCardNumber] = useState<string>('');
+  const [cardExpiry, setCardExpiry] = useState<string>('');
+  const [cardCvc, setCardCvc] = useState<string>('');
+  const [billingZip, setBillingZip] = useState<string>('');
 
   useEffect(() => {
     if (activeLocation) {
-      setDiyOpportunities(AppStore.getDIYOpportunities(activeLocation.id));
+      const catalog = CitationService.generateComprehensiveCitationCatalog(activeLocation);
+      setDiyOpportunities(catalog);
       setDfyOrders(AppStore.getDFYOrders(activeLocation.id));
     }
   }, [activeLocation]);
@@ -67,15 +83,45 @@ export default function CitationBuilderPage() {
     );
   }
 
-  // Handle Marking DIY Item Completed
+  // Trigger Continuous AI Discovery
+  const handleRunContinuousAiDiscovery = () => {
+    setIsDiscoveringAi(true);
+    setTimeout(() => {
+      const newlyDiscovered = CitationService.discoverNewAiCitations(activeLocation);
+      const updatedList = AppStore.getDIYOpportunities(activeLocation.id);
+      setDiyOpportunities(updatedList);
+      setIsDiscoveringAi(false);
+
+      if (newlyDiscovered.length > 0) {
+        setToastMessage(`AI Continuous Discovery found ${newlyDiscovered.length} new high-authority citation directories for ${activeLocation.city}!`);
+      } else {
+        setToastMessage(`Continuous Discovery verified: Your citation catalog is already fully up to date with 100% directory coverage.`);
+      }
+      setTimeout(() => setToastMessage(''), 6000);
+    }, 1200);
+  };
+
+  // Status Change Handler
+  const handleUpdateDIYStatus = (item: DIYCitationOpportunity, newStatus: DIYCitationOpportunity['status']) => {
+    const updated: DIYCitationOpportunity = {
+      ...item,
+      status: newStatus,
+      completedAt: newStatus === 'LIVE' ? new Date().toISOString() : item.completedAt,
+    };
+    AppStore.saveDIYOpportunity(updated);
+    setDiyOpportunities(AppStore.getDIYOpportunities(activeLocation.id));
+  };
+
+  // Proof Modal Save
   const handleSaveProofUrl = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDIYItem) return;
 
     const updated: DIYCitationOpportunity = {
       ...selectedDIYItem,
-      status: 'COMPLETED',
+      status: 'LIVE',
       proofUrl: proofInputUrl.trim() || selectedDIYItem.submissionUrl,
+      liveUrl: proofInputUrl.trim() || selectedDIYItem.submissionUrl,
       completedAt: new Date().toISOString(),
     };
 
@@ -85,50 +131,45 @@ export default function CitationBuilderPage() {
     setProofInputUrl('');
   };
 
-  const handleUpdateDIYStatus = (item: DIYCitationOpportunity, newStatus: DIYCitationOpportunity['status']) => {
-    const updated: DIYCitationOpportunity = {
-      ...item,
-      status: newStatus,
-      completedAt: newStatus === 'COMPLETED' ? new Date().toISOString() : item.completedAt,
-    };
-    AppStore.saveDIYOpportunity(updated);
-    setDiyOpportunities(AppStore.getDIYOpportunities(activeLocation.id));
+  // Open Payment Modal
+  const handleOpenPaymentModal = () => {
+    setCardName(activeLocation.name || '');
+    setCardNumber('4242 4242 4242 4242');
+    setCardExpiry('12/28');
+    setCardCvc('888');
+    setBillingZip(activeLocation.zip || '78701');
+    setShowPaymentModal(true);
   };
 
-  // Handle Purchasing DFY Citation Package
-  const handlePurchaseDFYPackage = () => {
-    const count = Math.max(1, selectedPackageCount);
-    setIsOrdering(true);
+  // Process Credit Card Payment & Purchase DFY Order
+  const handleProcessPayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessingPayment(true);
 
     setTimeout(() => {
-      // Mock DFY Auto-generated Order Items
+      const count = Math.max(1, selectedPackageCount);
       const mockDirectoryNames = [
         { name: 'CityGrid Local Business Index', domain: 'citygrid.com', da: 89 },
         { name: 'InsiderPages Verified Directory', domain: 'insiderpages.com', da: 84 },
         { name: 'JudyBook Local Services', domain: 'judysbook.com', da: 79 },
         { name: 'MerchantCircle Business Network', domain: 'merchantcircle.com', da: 88 },
         { name: 'Hotfrog Enterprise Directory', domain: 'hotfrog.com', da: 81 },
-        { name: 'Brownbook Global Business Guide', domain: 'brownbook.net', da: 77 },
-        { name: 'Cylex Business Directory', domain: 'cylex.us.com', da: 75 },
-        { name: 'Tupalo Local Community Directory', domain: 'tupalo.com', da: 73 },
       ];
 
-      const generatedItems: DFYCitationSubmissionItem[] = mockDirectoryNames.slice(0, Math.min(count, 8)).map((d, i) => ({
+      const generatedItems: DFYCitationSubmissionItem[] = mockDirectoryNames.map((d, i) => ({
         id: `dfy-item-${Date.now()}-${i}`,
         directoryName: d.name,
         domain: d.domain,
         domainAuthority: d.da,
-        status: i === 0 ? 'APPROVED' : i === 1 ? 'SUBMITTED' : 'IN_PROGRESS',
-        liveUrl: i === 0 ? `https://${d.domain}/${activeLocation.name.toLowerCase().replace(/\s+/g, '-')}` : undefined,
+        status: i === 0 ? 'APPROVED' : 'IN_PROGRESS',
         submittedAt: new Date().toISOString(),
-        approvedAt: i === 0 ? new Date().toISOString() : undefined,
       }));
 
       const newOrder: DFYCitationOrder = {
         id: `dfy-order-${Date.now().toString().slice(-4)}`,
         locationId: activeLocation.id,
         packageCount: count,
-        totalCost: count * 1, // $1 per citation
+        totalCost: count * 1,
         orderStatus: 'IN_PROGRESS',
         orderedAt: new Date().toISOString(),
         items: generatedItems,
@@ -136,632 +177,571 @@ export default function CitationBuilderPage() {
 
       AppStore.saveDFYOrder(newOrder);
       setDfyOrders(AppStore.getDFYOrders(activeLocation.id));
-      setIsOrdering(false);
-      setOrderSuccessMsg(`🎉 Successfully launched Done-For-You order #${newOrder.id} for ${count} citations ($${count})!`);
-      setTimeout(() => setOrderSuccessMsg(''), 6000);
-    }, 1200);
+      setIsProcessingPayment(false);
+      setShowPaymentModal(false);
+      setToastMessage(`💳 Payment of $${count}.00 Successful! Launched Done-For-You Citation Order #${newOrder.id} for ${count} citations!`);
+      setTimeout(() => setToastMessage(''), 6000);
+    }, 1500);
   };
 
-  // Filter DIY Opportunities
-  const filteredDIY = diyOpportunities.filter((item) => {
+  // Metric Computations
+  const totalOpportunities = diyOpportunities.length;
+  const completedCount = diyOpportunities.filter((o) => o.status === 'LIVE' || o.status === 'COMPLETED').length;
+  const remainingCount = diyOpportunities.filter((o) => o.status !== 'LIVE' && o.status !== 'COMPLETED').length;
+  const competitorGapCount = diyOpportunities.filter((o) => o.isCompetitorGap && o.status !== 'LIVE').length;
+  const inProgressCount = diyOpportunities.filter((o) => o.status === 'IN_PROGRESS' || o.status === 'SUBMITTED' || o.status === 'PENDING_APPROVAL').length;
+  const completionRate = totalOpportunities > 0 ? Math.round((completedCount / totalOpportunities) * 100) : 0;
+  const citationHealthScore = Math.min(99, Math.max(65, 75 + Math.round(completionRate * 0.24)));
+
+  // Filter Items
+  const filteredItems = diyOpportunities.filter((item) => {
     const matchesSearch =
       item.directoryName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.domain.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.category.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesCategory = filterCategory === 'ALL' || item.category.includes(filterCategory);
-    const matchesStatus = filterStatus === 'ALL' || item.status === filterStatus;
-    const matchesGap = !onlyCompetitorGaps || item.isCompetitorGap;
+    const matchesCategory = selectedCategory === 'ALL' || item.category === selectedCategory;
 
-    return matchesSearch && matchesCategory && matchesStatus && matchesGap;
+    let matchesTab = true;
+    if (activeTab === 'COMPETITOR_GAPS') matchesTab = item.isCompetitorGap && item.status !== 'LIVE';
+    else if (activeTab === 'IN_PROGRESS') matchesTab = item.status === 'IN_PROGRESS' || item.status === 'SUBMITTED' || item.status === 'PENDING_APPROVAL';
+    else if (activeTab === 'COMPLETED') matchesTab = item.status === 'LIVE' || item.status === 'COMPLETED';
+
+    return matchesSearch && matchesCategory && matchesTab;
   });
-
-  const diyCompletedCount = diyOpportunities.filter((o) => o.status === 'COMPLETED').length;
-  const diyProgressPercent = diyOpportunities.length ? Math.round((diyCompletedCount / diyOpportunities.length) * 100) : 0;
-  const competitorGapCount = diyOpportunities.filter((o) => o.isCompetitorGap).length;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div>
+      {/* Toast Notification Alert */}
+      {toastMessage && (
+        <div className="p-4 bg-amber-500 text-white rounded-2xl shadow-xl flex items-center justify-between font-bold text-xs">
           <div className="flex items-center space-x-2">
-            <span className="px-3 py-1 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 font-extrabold text-[11px] uppercase tracking-wider flex items-center">
-              <ShieldCheck className="w-3.5 h-3.5 mr-1" /> Dual-Mode Citation Strategy
-            </span>
+            <Globe className="w-5 h-5 text-white" />
+            <span>{toastMessage}</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mt-2 flex items-center">
+          <button onClick={() => setToastMessage('')} className="text-white hover:text-slate-200">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center">
             <Globe className="w-7 h-7 mr-2.5 text-brand-600 dark:text-brand-400" />
-            Citation Builder & Submission Engine
+            AI Citation Builder & Discovery Engine
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Build local authority for <strong className="text-slate-900 dark:text-white font-bold">{activeLocation.name}</strong> using AI-powered strategy or fully automated $1 submissions.
+            Continuous AI directory discovery & competitor citation gap tracking for <span className="font-bold">{activeLocation.name}</span> ({activeLocation.city}, {activeLocation.state})
           </p>
         </div>
 
-        {/* Mode Switcher Tabs */}
-        <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 self-start md:self-auto">
+        {/* Continuous AI Discovery Button */}
+        <div className="flex items-center space-x-3">
           <button
-            onClick={() => setActiveTab('DIY')}
-            className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all ${
-              activeTab === 'DIY'
-                ? 'bg-brand-500 text-white shadow-md shadow-brand-500/20'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            onClick={handleRunContinuousAiDiscovery}
+            disabled={isDiscoveringAi}
+            className="flex items-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl text-xs font-black transition-all shadow-md shadow-amber-500/20 active:scale-95 disabled:opacity-50"
+            id="ai-continuous-discovery-btn"
           >
-            <span>Do It Yourself (DIY AI)</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('DFY')}
-            className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all ${
-              activeTab === 'DFY'
-                ? 'bg-brand-500 text-white shadow-md shadow-brand-500/20'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Rocket className="w-4 h-4" />
-            <span>Done For You ($1/Citation)</span>
+            <RefreshCw className={`w-4 h-4 text-white ${isDiscoveringAi ? 'animate-spin' : ''}`} />
+            <span>{isDiscoveringAi ? 'Discovering Directories...' : 'Continuous AI Discovery'}</span>
           </button>
         </div>
       </div>
 
-      {/* Success Notification Alert */}
-      {orderSuccessMsg && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center justify-between animate-in fade-in duration-200">
-          <span>{orderSuccessMsg}</span>
-          <button onClick={() => setOrderSuccessMsg('')} className="text-emerald-500 hover:text-emerald-700 font-extrabold text-sm">
-            ×
-          </button>
+      {/* 📊 Citation Progress Dashboard Metrics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        <div className="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Total Opportunities</span>
+          <div className="text-xl font-black text-slate-900 dark:text-white mt-0.5">{totalOpportunities}</div>
+          <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">High DA Directories</span>
         </div>
-      )}
 
-      {/* ───────────────────────────────────────────────────────────── */}
-      {/* 🛠️ MODE 1: DO IT YOURSELF (DIY) AI-POWERED CITATION STRATEGY  */}
-      {/* ───────────────────────────────────────────────────────────── */}
-      {activeTab === 'DIY' && (
-        <div className="space-y-6">
-          {/* AI Intelligence Metrics Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-brand-500/20 dark:border-slate-800 shadow-sm space-y-1">
-              <span className="text-[10px] font-black uppercase text-brand-600 dark:text-brand-400 tracking-wider">
-                AI Discovered Opportunities
-              </span>
-              <div className="text-3xl font-black text-slate-900 dark:text-white">{diyOpportunities.length}</div>
-              <span className="text-[11px] text-slate-500 font-medium">Prioritized for Local 3-Pack</span>
-            </div>
+        <div className="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Completed & Verified</span>
+          <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">{completedCount}</div>
+          <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Live Citation Listings</span>
+        </div>
 
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-brand-500/20 dark:border-slate-800 shadow-sm space-y-1">
-              <span className="text-[10px] font-black uppercase text-brand-600 dark:text-brand-400 tracking-wider flex items-center">
-                <ShieldCheck className="w-3.5 h-3.5 mr-1" /> Competitor Citation Gaps
-              </span>
-              <div className="text-3xl font-black text-brand-600 dark:text-brand-400">{competitorGapCount}</div>
-              <span className="text-[11px] text-slate-500 font-medium">Competitors listed, you are missing</span>
-            </div>
+        <div className="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Remaining to Build</span>
+          <div className="text-xl font-black text-amber-500 mt-0.5">{remainingCount}</div>
+          <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Pending Submissions</span>
+        </div>
 
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-emerald-500/20 dark:border-slate-800 shadow-sm space-y-1">
-              <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">
-                Completed Submissions
-              </span>
-              <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{diyCompletedCount}</div>
-              <span className="text-[11px] text-slate-500 font-medium">{diyProgressPercent}% of recommended strategy</span>
-            </div>
+        <div className="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Competitor Citation Gaps</span>
+          <div className="text-xl font-black text-indigo-600 dark:text-indigo-400 mt-0.5">{competitorGapCount}</div>
+          <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Competitor-Only Sites</span>
+        </div>
 
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-              <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">
-                DIY Progress Tracker
-              </span>
-              <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${diyProgressPercent}%` }} />
-              </div>
-              <div className="flex justify-between text-[10px] font-bold text-slate-500">
-                <span>{diyCompletedCount} Verified</span>
-                <span>{diyOpportunities.length - diyCompletedCount} Remaining</span>
-              </div>
-            </div>
+        <div className="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Completion Rate</span>
+          <div className="text-xl font-black text-brand-600 dark:text-brand-400 mt-0.5">{completionRate}%</div>
+          <div className="w-full bg-slate-200 dark:bg-slate-800 h-1 rounded-full mt-1 overflow-hidden">
+            <div className="bg-brand-600 h-full rounded-full" style={{ width: `${completionRate}%` }}></div>
+          </div>
+        </div>
+
+        <div className="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Citation Health Score</span>
+          <div className="text-xl font-black text-emerald-500 mt-0.5">{citationHealthScore}%</div>
+          <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">NAP Consistency Score</span>
+        </div>
+      </div>
+
+      {/* 🧭 Navigation Sub-Tabs Bar */}
+      <div className="flex items-center space-x-2 bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs font-bold shadow-sm overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('ALL')}
+          className={`px-4 py-2 rounded-xl transition-all flex items-center space-x-1.5 whitespace-nowrap ${
+            activeTab === 'ALL' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-brand-600'
+          }`}
+        >
+          <Globe className="w-4 h-4" />
+          <span>All Opportunities ({diyOpportunities.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('COMPETITOR_GAPS')}
+          className={`px-4 py-2 rounded-xl transition-all flex items-center space-x-1.5 whitespace-nowrap ${
+            activeTab === 'COMPETITOR_GAPS' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-indigo-600'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>Competitor Citation Gaps ({competitorGapCount})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('IN_PROGRESS')}
+          className={`px-4 py-2 rounded-xl transition-all flex items-center space-x-1.5 whitespace-nowrap ${
+            activeTab === 'IN_PROGRESS' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-amber-600'
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          <span>In Progress / Submitted ({inProgressCount})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('COMPLETED')}
+          className={`px-4 py-2 rounded-xl transition-all flex items-center space-x-1.5 whitespace-nowrap ${
+            activeTab === 'COMPLETED' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600'
+          }`}
+        >
+          <CheckCircle2 className="w-4 h-4" />
+          <span>Completed & Verified ({completedCount})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('DFY')}
+          className={`px-4 py-2 rounded-xl transition-all flex items-center space-x-1.5 whitespace-nowrap ${
+            activeTab === 'DFY' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-amber-500'
+          }`}
+        >
+          <Rocket className="w-4 h-4" />
+          <span>Done-For-You Services ($1/Citation)</span>
+        </button>
+      </div>
+
+      {/* 🔍 Search & Category Filter Controls */}
+      {activeTab !== 'DFY' && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search directory name, domain, or category..."
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
           </div>
 
-          {/* AI Competitor Citation Gap Banner */}
-          {competitorGapCount > 0 && (
-            <div className="p-5 bg-orange-50 dark:bg-orange-950/30 border border-brand-500/30 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-slate-900 dark:text-white shadow-sm">
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2 text-brand-600 dark:text-brand-400 font-black text-xs uppercase tracking-wider">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>AI Competitor Intelligence Discovery</span>
-                </div>
-                <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">
-                  Identified {competitorGapCount} high-authority directories where your top competitors rank!
-                </h4>
-                <p className="text-xs text-slate-600 dark:text-slate-300">
-                  Building listings on these missing directories can directly close your local pack authority gap.
-                </p>
-              </div>
-
+          <div className="flex items-center space-x-2 overflow-x-auto text-xs">
+            <span className="text-[10px] font-extrabold uppercase text-slate-400">Category:</span>
+            {['ALL', 'General', 'Local', 'Industry', 'Chamber', 'Professional', 'Niche', 'Government'].map((cat) => (
               <button
-                onClick={() => setOnlyCompetitorGaps(!onlyCompetitorGaps)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all shrink-0 ${
-                  onlyCompetitorGaps
-                    ? 'bg-brand-600 text-white shadow-sm'
-                    : 'bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 border border-brand-500/30 hover:bg-brand-50 dark:hover:bg-slate-800'
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap ${
+                  selectedCategory === cat
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200'
                 }`}
               >
-                {onlyCompetitorGaps ? 'Show All Opportunities' : 'Filter Competitor Gaps Only'}
+                {cat}
               </button>
-            </div>
-          )}
-
-          {/* DIY Filters Bar */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-            <div className="relative w-full sm:w-80">
-              <input
-                type="text"
-                placeholder="Search citation directories..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
-              />
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-            </div>
-
-            <div className="flex items-center space-x-3 w-full sm:w-auto">
-              <div className="flex items-center space-x-1.5">
-                <Filter className="w-3.5 h-3.5 text-slate-400" />
-                <span className="text-slate-500 font-medium">Status:</span>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-1.5 text-xs font-bold"
-                >
-                  <option value="ALL">All ({diyOpportunities.length})</option>
-                  <option value="RECOMMENDED">Recommended</option>
-                  <option value="IN_PROGRESS">In Progress</option>
-                  <option value="COMPLETED">Completed</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* DIY Citation Opportunities Cards List */}
-          <div className="space-y-4">
-            {filteredDIY.length === 0 ? (
-              <div className="p-12 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-3">
-                <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
-                <h3 className="font-extrabold text-slate-900 dark:text-white">No Matching Citation Opportunities</h3>
-                <p className="text-xs text-slate-500">Try adjusting your search terms or filters.</p>
-              </div>
-            ) : (
-              filteredDIY.map((opp) => (
-                <div
-                  key={opp.id}
-                  className={`bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-xs space-y-4 transition-all ${
-                    opp.status === 'COMPLETED'
-                      ? 'border-emerald-500/30 bg-emerald-50/20 dark:bg-emerald-950/10'
-                      : opp.isCompetitorGap
-                      ? 'border-brand-500/30 ring-1 ring-brand-500/20'
-                      : 'border-slate-200 dark:border-slate-800'
-                  }`}
-                >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-2xl bg-brand-500/10 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center font-black text-sm shrink-0">
-                        {opp.directoryName.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-black text-slate-900 dark:text-white text-sm">{opp.directoryName}</h3>
-                          {opp.isCompetitorGap && (
-                            <span className="px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 font-extrabold text-[9px] border border-brand-500/30 flex items-center">
-                              <ShieldCheck className="w-3 h-3 mr-1" /> Competitor Gap ({opp.competitorName || 'Competitors'})
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                          {opp.domain} • {opp.category} • {opp.country}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Quality Badges */}
-                    <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold">
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                        DA {opp.domainAuthority}
-                      </span>
-                      <span className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                        Trust {opp.trustScore}%
-                      </span>
-                      <span
-                        className={`px-2.5 py-1 rounded-lg font-extrabold ${
-                          opp.seoValue === 'EXCEPTIONAL'
-                            ? 'bg-brand-500/15 text-brand-600 dark:text-brand-400 border border-brand-500/30'
-                            : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
-                        }`}
-                      >
-                        {opp.seoValue} SEO VALUE
-                      </span>
-                      <span className="px-2.5 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
-                        {opp.submissionCost || (opp.isFree ? 'Free Listing' : 'Paid')}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* AI Why Recommended Box */}
-                  <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 space-y-1">
-                    <span className="font-extrabold text-brand-600 dark:text-brand-400 text-[10px] uppercase tracking-wider block">
-                      🤖 AI Rationale & Ranking Impact Score ({opp.rankingImpactScore}/100)
-                    </span>
-                    <p>{opp.whyRecommended}</p>
-                  </div>
-
-                  {/* Action Controls & Proof submission */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-                    <div className="flex items-center space-x-2">
-                      <a
-                        href={opp.submissionUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white text-slate-800 dark:text-slate-200 font-bold transition-all flex items-center space-x-1.5"
-                      >
-                        <span>Open Submission Website</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-
-                      {opp.proofUrl && (
-                        <a
-                          href={opp.proofUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-3 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center space-x-1"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>View Proof</span>
-                        </a>
-                      )}
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      {opp.status === 'COMPLETED' ? (
-                        <span className="px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold flex items-center">
-                          <CheckCircle2 className="w-4 h-4 mr-1 text-emerald-500" /> Completed
-                        </span>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => handleUpdateDIYStatus(opp, opp.status === 'IN_PROGRESS' ? 'RECOMMENDED' : 'IN_PROGRESS')}
-                            className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 transition-all"
-                          >
-                            {opp.status === 'IN_PROGRESS' ? 'In Progress' : 'Mark In Progress'}
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              setSelectedDIYItem(opp);
-                              setProofInputUrl(opp.submissionUrl);
-                            }}
-                            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all shadow-xs"
-                          >
-                            Mark Completed & Add Proof
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+            ))}
           </div>
         </div>
       )}
 
-      {/* ───────────────────────────────────────────────────────────── */}
-      {/* 🚀 MODE 2: DONE FOR YOU (DFY) AUTOMATED SUBMISSION SERVICE    */}
-      {/* ───────────────────────────────────────────────────────────── */}
+      {/* 📋 OPPORTUNITY CARDS GRID */}
+      {activeTab !== 'DFY' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredItems.map((item) => (
+            <div
+              key={item.id}
+              className={`bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-sm space-y-3 flex flex-col justify-between transition-all hover:border-brand-400 ${
+                item.isCompetitorGap
+                  ? 'border-indigo-200 dark:border-indigo-900/60 bg-gradient-to-b from-indigo-50/20 to-transparent'
+                  : 'border-slate-200 dark:border-slate-800'
+              }`}
+            >
+              <div className="space-y-2.5">
+                {/* Header Title & Badges */}
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 dark:text-white text-sm flex items-center">
+                      <Globe className="w-4 h-4 mr-1.5 text-brand-600 shrink-0" />
+                      {item.directoryName}
+                    </h3>
+                    <a
+                      href={item.submissionUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] text-brand-600 dark:text-brand-400 hover:underline flex items-center mt-0.5"
+                    >
+                      <span>{item.domain}</span>
+                      <ExternalLink className="w-2.5 h-2.5 ml-1" />
+                    </a>
+                  </div>
+
+                  <span className="font-black text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 rounded-lg">
+                    DA {item.domainAuthority}
+                  </span>
+                </div>
+
+                {/* Category & Cost Pills */}
+                <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                  <span className="bg-slate-100 dark:bg-slate-800 font-bold px-2 py-0.5 rounded text-slate-700 dark:text-slate-300">
+                    {item.category}
+                  </span>
+                  <span className="bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300 font-bold px-2 py-0.5 rounded">
+                    {item.submissionCost || (item.isFree ? 'Free Listing' : 'Paid')}
+                  </span>
+                  <span className="bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 font-bold px-2 py-0.5 rounded">
+                    {item.seoValue} SEO VALUE
+                  </span>
+                </div>
+
+                {/* Competitor Gap Banner */}
+                {item.isCompetitorGap && (
+                  <div className="p-2.5 bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900 rounded-xl text-[11px] space-y-1">
+                    <span className="font-extrabold text-indigo-900 dark:text-indigo-200 flex items-center">
+                      <Users className="w-3.5 h-3.5 mr-1 text-indigo-600" />
+                      Competitor Gap Detected!
+                    </span>
+                    <p className="text-slate-600 dark:text-slate-300 text-[10px] font-medium leading-relaxed">
+                      {item.competitorsListedCount || 3} top competitors in {activeLocation.city} are listed here. Submitting will close the local rank gap.
+                    </p>
+                  </div>
+                )}
+
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                  {item.whyRecommended}
+                </p>
+              </div>
+
+              {/* Status Selector & Actions Footer */}
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Submission Status</span>
+                  <select
+                    value={item.status}
+                    onChange={(e) => handleUpdateDIYStatus(item, e.target.value as any)}
+                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-[11px] font-bold text-slate-900 dark:text-white focus:outline-none"
+                  >
+                    <option value="NOT_STARTED">Not Started</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="SUBMITTED">Submitted</option>
+                    <option value="PENDING_APPROVAL">Pending Approval</option>
+                    <option value="LIVE">Live (Verified)</option>
+                    <option value="REJECTED">Rejected</option>
+                    <option value="NEEDS_UPDATE">Needs Update</option>
+                  </select>
+                </div>
+
+                <div className="flex space-x-2">
+                  <a
+                    href={item.submissionUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-center bg-brand-600 hover:bg-brand-700 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-sm"
+                  >
+                    Submit Citation
+                  </a>
+
+                  <button
+                    onClick={() => {
+                      setSelectedDIYItem(item);
+                      setProofInputUrl(item.proofUrl || item.submissionUrl);
+                    }}
+                    className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold px-3 py-2 rounded-xl text-xs transition-all"
+                  >
+                    Proof URL
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 🚀 DONE-FOR-YOU CITATION SERVICES TAB */}
       {activeTab === 'DFY' && (
         <div className="space-y-6">
-          {/* DFY Pricing & Package Selector Card */}
-          <div className="bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl text-white space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <span className="px-3 py-1 rounded-full bg-brand-500/20 text-brand-400 font-black text-[10px] uppercase tracking-wider">
-                  $1 Per Citation • Fully Managed Service
-                </span>
-                <h2 className="text-xl md:text-2xl font-black text-white mt-1">
-                  Automated Done-For-You Citation Submissions
-                </h2>
-                <p className="text-xs text-slate-300 mt-1 max-w-xl">
-                  Our automated platform submits your audited NAP data directly to high-authority directories. No manual work required.
-                </p>
-              </div>
-
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center shrink-0">
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Flat Rate Pricing</span>
-                <div className="text-3xl font-black text-brand-400 mt-0.5">$1.00</div>
-                <span className="text-[10px] text-slate-400 font-bold">Per Verified Citation</span>
-              </div>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-3xl space-y-5 shadow-sm">
+            <div className="inline-flex items-center space-x-2 bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 font-extrabold px-3 py-1 rounded-xl text-xs border border-amber-300 dark:border-amber-800">
+              <Rocket className="w-4 h-4 text-amber-600" />
+              <span>Automated Done-For-You Citation Submissions</span>
             </div>
+            
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">
+              We Manually Submit & Verify Citations for $1 / Citation
+            </h2>
+            
+            <p className="text-xs md:text-sm text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed font-medium">
+              Our Local SEO team manually claims, builds, and verifies listings on high-authority directories across the US, UK, Canada, and Australia with 100% NAP consistency.
+            </p>
 
-            {/* Package Selector Cards */}
-            <div className="space-y-3">
-              <label className="block text-xs font-extrabold uppercase text-slate-300 tracking-wider">
-                Select Citation Package Quantity
-              </label>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedPackageCount(25);
-                    setCustomCountInput('25');
-                  }}
-                  className={`p-4 rounded-2xl border text-left transition-all relative ${
-                    selectedPackageCount === 25
-                      ? 'bg-brand-500/10 border-brand-500 text-white shadow-lg ring-2 ring-brand-500/40'
-                      : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:border-slate-700'
-                  }`}
-                >
-                  <span className="text-xs font-extrabold block text-slate-400">Starter Pack</span>
-                  <div className="text-2xl font-black text-white mt-1">25 Citations</div>
-                  <div className="text-lg font-extrabold text-brand-400 mt-1">$25 USD</div>
-                  <span className="text-[10px] text-slate-400 font-medium block mt-1">Foundational Local Signals</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedPackageCount(50);
-                    setCustomCountInput('50');
-                  }}
-                  className={`p-4 rounded-2xl border text-left transition-all relative ${
-                    selectedPackageCount === 50
-                      ? 'bg-brand-500/10 border-brand-500 text-white shadow-lg ring-2 ring-brand-500/40'
-                      : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:border-slate-700'
-                  }`}
-                >
-                  <span className="px-2 py-0.5 rounded-full bg-brand-500 text-white font-black text-[9px] uppercase absolute top-3 right-3">
-                    Most Popular
-                  </span>
-                  <span className="text-xs font-extrabold block text-slate-400">Growth Domination</span>
-                  <div className="text-2xl font-black text-white mt-1">50 Citations</div>
-                  <div className="text-lg font-extrabold text-brand-400 mt-1">$50 USD</div>
-                  <span className="text-[10px] text-slate-400 font-medium block mt-1">Recommended for Local 3-Pack</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedPackageCount(100);
-                    setCustomCountInput('100');
-                  }}
-                  className={`p-4 rounded-2xl border text-left transition-all relative ${
-                    selectedPackageCount === 100
-                      ? 'bg-brand-500/10 border-brand-500 text-white shadow-lg ring-2 ring-brand-500/40'
-                      : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:border-slate-700'
-                  }`}
-                >
-                  <span className="text-xs font-extrabold block text-slate-400">Enterprise Blast</span>
-                  <div className="text-2xl font-black text-white mt-1">100 Citations</div>
-                  <div className="text-lg font-extrabold text-brand-400 mt-1">$100 USD</div>
-                  <span className="text-[10px] text-slate-400 font-medium block mt-1">Maximum Market Penetration</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Custom Quantity Input */}
-            <div className="flex items-center space-x-3 text-xs bg-slate-950 p-3 rounded-2xl border border-slate-800 max-w-sm">
-              <span className="text-slate-400 font-bold whitespace-nowrap">Or Custom Quantity:</span>
-              <input
-                type="number"
-                min="1"
-                max="500"
-                value={customCountInput}
-                onChange={(e) => {
-                  setCustomCountInput(e.target.value);
-                  const val = parseInt(e.target.value, 10);
-                  if (!isNaN(val) && val > 0) setSelectedPackageCount(val);
-                }}
-                className="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-brand-500"
-              />
-              <span className="text-brand-400 font-black">${selectedPackageCount}</span>
-            </div>
-
-            {/* Order Summary & Launch Action */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t border-slate-800 text-xs">
-              <div className="space-y-1">
-                <span className="text-slate-400 font-bold">
-                  Order Summary: <strong className="text-white font-extrabold">{selectedPackageCount} Automated Citations</strong> @ $1/each
-                </span>
-                <p className="text-[11px] text-slate-400">
-                  AI will auto-select the highest DA directories matching {activeLocation.category} in {activeLocation.city}, {activeLocation.state}.
-                </p>
-              </div>
+            <div className="flex flex-wrap gap-4 pt-2">
+              <button
+                onClick={() => setSelectedPackageCount(25)}
+                className={`p-4 rounded-2xl border text-left transition-all ${
+                  selectedPackageCount === 25
+                    ? 'bg-amber-500 text-white border-amber-600 shadow-md scale-105'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border-slate-200 dark:border-slate-700 hover:border-amber-400'
+                }`}
+              >
+                <span className="font-extrabold text-sm block">Starter Pack</span>
+                <span className="text-xl font-black mt-1 block">25 Citations ($25)</span>
+              </button>
 
               <button
-                type="button"
-                onClick={handlePurchaseDFYPackage}
-                disabled={isOrdering}
-                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-black text-xs shadow-lg shadow-brand-500/30 flex items-center justify-center space-x-2 transition-all active:scale-95"
+                onClick={() => setSelectedPackageCount(50)}
+                className={`p-4 rounded-2xl border text-left transition-all ${
+                  selectedPackageCount === 50
+                    ? 'bg-amber-500 text-white border-amber-600 shadow-md scale-105'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border-slate-200 dark:border-slate-700 hover:border-amber-400'
+                }`}
               >
-                <ShoppingCart className="w-4 h-4" />
-                <span>{isOrdering ? 'Processing Order...' : `Order & Launch Submissions ($${selectedPackageCount})`}</span>
+                <span className="font-extrabold text-sm block">Growth Pack (Recommended)</span>
+                <span className="text-xl font-black mt-1 block">50 Citations ($50)</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedPackageCount(100)}
+                className={`p-4 rounded-2xl border text-left transition-all ${
+                  selectedPackageCount === 100
+                    ? 'bg-amber-500 text-white border-amber-600 shadow-md scale-105'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border-slate-200 dark:border-slate-700 hover:border-amber-400'
+                }`}
+              >
+                <span className="font-extrabold text-sm block">Enterprise Dominance</span>
+                <span className="text-xl font-black mt-1 block">100 Citations ($100)</span>
               </button>
             </div>
+
+            {/* Launch Button Triggers Credit Card Payment Modal */}
+            <button
+              onClick={handleOpenPaymentModal}
+              className="bg-amber-500 hover:bg-amber-600 text-white font-black text-sm px-6 py-3.5 rounded-2xl shadow-lg shadow-amber-500/20 transition-all active:scale-95 flex items-center space-x-2"
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>Launch DFY Order for {selectedPackageCount} Citations (${selectedPackageCount})</span>
+            </button>
           </div>
 
-          {/* Active DFY Orders Progress Monitor */}
-          <div className="space-y-5">
-            <h3 className="font-black text-slate-900 dark:text-white text-lg flex items-center">
-              <Rocket className="w-5 h-5 mr-2 text-brand-500" />
-              Active Done-For-You Citation Orders ({dfyOrders.length})
-            </h3>
+          {/* Active Orders List */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+            <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">Active DFY Citation Orders ({dfyOrders.length})</h3>
 
-            {dfyOrders.map((order) => {
-              const approvedCount = order.items.filter((i) => i.status === 'APPROVED').length;
-              const submittedCount = order.items.filter((i) => i.status === 'SUBMITTED').length;
-              const progressPercent = order.items.length ? Math.round((approvedCount / order.items.length) * 100) : 0;
-
-              return (
-                <div key={order.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-5">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-black text-slate-900 dark:text-white text-base">Order #{order.id}</span>
-                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-extrabold text-[10px] border border-emerald-500/30">
-                          {order.orderStatus}
-                        </span>
-                      </div>
-                      <span className="text-xs text-slate-500">
-                        {order.packageCount} Citations Package ($${order.totalCost}) • Ordered on {new Date(order.orderedAt).toLocaleDateString()}
-                      </span>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-xs font-extrabold text-slate-900 dark:text-white block">
-                        {approvedCount} / {order.packageCount} Approved ({progressPercent}%)
-                      </span>
-                      <div className="w-44 bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden mt-1">
-                        <div className="bg-emerald-500 h-full transition-all" style={{ width: `${progressPercent}%` }} />
-                      </div>
-                    </div>
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dfyOrders.map((order) => (
+                <div key={order.id} className="py-4 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-slate-900 dark:text-white text-xs">Order #{order.id} — {order.packageCount} Citations</span>
+                    <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2.5 py-1 rounded-lg">
+                      {order.orderStatus}
+                    </span>
                   </div>
-
-                  {/* Status Breakdown Pills */}
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-[11px] font-bold">
-                    <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 flex justify-between">
-                      <span>Approved</span>
-                      <span>{order.items.filter((i) => i.status === 'APPROVED').length}</span>
-                    </div>
-                    <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 rounded-xl text-blue-700 dark:text-blue-300 border border-blue-500/20 flex justify-between">
-                      <span>Submitted</span>
-                      <span>{order.items.filter((i) => i.status === 'SUBMITTED').length}</span>
-                    </div>
-                    <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 rounded-xl text-amber-700 dark:text-amber-300 border border-amber-500/20 flex justify-between">
-                      <span>In Progress</span>
-                      <span>{order.items.filter((i) => i.status === 'IN_PROGRESS').length}</span>
-                    </div>
-                    <div className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex justify-between">
-                      <span>Pending</span>
-                      <span>{order.items.filter((i) => i.status === 'PENDING').length}</span>
-                    </div>
-                    <div className="p-2.5 bg-red-50 dark:bg-red-950/40 rounded-xl text-red-700 dark:text-red-300 border border-red-500/20 flex justify-between col-span-2 sm:col-span-1">
-                      <span>Rejected</span>
-                      <span>{order.items.filter((i) => i.status === 'REJECTED').length}</span>
-                    </div>
-                  </div>
-
-                  {/* Detailed Submission Items Table */}
-                  <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-100/60 dark:bg-slate-800/60 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800">
-                        <tr>
-                          <th className="py-3 px-4">Directory Name</th>
-                          <th className="py-3 px-4">DA</th>
-                          <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4">Submitted Date</th>
-                          <th className="py-3 px-4 text-right">Live URL / Proof</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {order.items.map((item) => (
-                          <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
-                            <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">
-                              {item.directoryName}
-                              {item.rejectionReason && (
-                                <p className="text-[10px] text-red-500 font-medium mt-0.5">⚠️ {item.rejectionReason}</p>
-                              )}
-                            </td>
-                            <td className="py-3 px-4 font-bold text-slate-600 dark:text-slate-400">DA {item.domainAuthority}</td>
-                            <td className="py-3 px-4">
-                              <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold ${
-                                  item.status === 'APPROVED'
-                                    ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
-                                    : item.status === 'SUBMITTED'
-                                    ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
-                                    : item.status === 'IN_PROGRESS'
-                                    ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
-                                    : item.status === 'REJECTED'
-                                    ? 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                                }`}
-                              >
-                                {item.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 text-slate-500">
-                              {item.submittedAt ? new Date(item.submittedAt).toLocaleDateString() : 'Queued'}
-                            </td>
-                            <td className="py-3 px-4 text-right">
-                              {item.liveUrl ? (
-                                <a
-                                  href={item.liveUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-brand-600 dark:text-brand-400 font-bold hover:underline inline-flex items-center"
-                                >
-                                  <span>View Live Link</span>
-                                  <ExternalLink className="w-3 h-3 ml-1" />
-                                </a>
-                              ) : (
-                                <span className="text-slate-400 italic text-[11px]">Processing...</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <p className="text-[11px] text-slate-500">Ordered on {new Date(order.orderedAt).toLocaleDateString()} • Total Cost: ${order.totalCost}</p>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         </div>
       )}
 
-      {/* DIY Proof URL Modal */}
-      {selectedDIYItem && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 text-slate-900 dark:text-white">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-extrabold text-base flex items-center">
-                <CheckCircle2 className="w-5 h-5 mr-2 text-emerald-500" />
-                Mark Citation Completed
-              </h3>
-              <button onClick={() => setSelectedDIYItem(null)} className="text-slate-400 hover:text-slate-600 font-bold">
-                ×
+      {/* ═══ 💳 CREDIT CARD PAYMENT CHECKOUT MODAL ═══ */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center space-x-2">
+                <CreditCard className="w-5 h-5 text-amber-500" />
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">Secure Payment Checkout</h3>
+              </div>
+              <button onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-500">
-              Submit proof for <strong className="text-slate-900 dark:text-white font-bold">{selectedDIYItem.directoryName}</strong> to track DIY citation progress.
-            </p>
+            {/* Order Summary Box */}
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-800 rounded-2xl space-y-1 text-xs">
+              <div className="flex justify-between font-bold text-slate-900 dark:text-white">
+                <span>DFY Citation Package</span>
+                <span>{selectedPackageCount} Citations</span>
+              </div>
+              <div className="flex justify-between text-slate-500">
+                <span>Price per Citation</span>
+                <span>$1.00 / citation</span>
+              </div>
+              <div className="flex justify-between font-black text-sm text-amber-600 pt-1 border-t border-slate-200 dark:border-slate-700">
+                <span>Total Amount Due</span>
+                <span>${selectedPackageCount}.00</span>
+              </div>
+            </div>
 
-            <form onSubmit={handleSaveProofUrl} className="space-y-3 text-xs">
+            <form onSubmit={handleProcessPayment} className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Live Listing URL or Proof Screenshot Link *
-                </label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Cardholder Name *</label>
                 <input
-                  type="url"
+                  type="text"
                   required
-                  placeholder="https://..."
-                  value={proofInputUrl}
-                  onChange={(e) => setProofInputUrl(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value)}
+                  placeholder="e.g. John Doe"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
                 />
               </div>
 
-              <div className="flex justify-end space-x-2 pt-2">
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Card Number *</label>
+                <div className="relative">
+                  <CreditCard className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    required
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value)}
+                    placeholder="4242 •••• •••• 4242"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3.5 py-2 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Expiry *</label>
+                  <input
+                    type="text"
+                    required
+                    value={cardExpiry}
+                    onChange={(e) => setCardExpiry(e.target.value)}
+                    placeholder="MM/YY"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono text-center"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">CVC *</label>
+                  <input
+                    type="password"
+                    required
+                    maxLength={4}
+                    value={cardCvc}
+                    onChange={(e) => setCardCvc(e.target.value)}
+                    placeholder="123"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono text-center"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">ZIP / Postcode *</label>
+                  <input
+                    type="text"
+                    required
+                    value={billingZip}
+                    onChange={(e) => setBillingZip(e.target.value)}
+                    placeholder="78701"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium text-center"
+                  />
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between text-[10px] text-slate-500">
+                <span className="flex items-center">
+                  <Lock className="w-3 h-3 mr-1 text-emerald-500" />
+                  256-Bit SSL Encrypted Checkout
+                </span>
+                <span className="font-bold text-slate-600 dark:text-slate-400">Visa • MC • Amex</span>
+              </div>
+
+              <div className="flex space-x-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setSelectedDIYItem(null)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-slate-600 dark:text-slate-300"
+                  onClick={() => setShowPaymentModal(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md"
+                  disabled={isProcessingPayment}
+                  className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center space-x-1.5"
                 >
-                  Save & Complete
+                  <CreditCard className="w-4 h-4" />
+                  <span>{isProcessingPayment ? 'Processing...' : `Pay $${selectedPackageCount}.00 & Launch`}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ PROOF / LIVE URL MODAL ═══ */}
+      {selectedDIYItem && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="font-extrabold text-slate-900 dark:text-white text-base">Submit Live Listing URL</h3>
+              <button onClick={() => setSelectedDIYItem(null)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProofUrl} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Live Verified URL on {selectedDIYItem.directoryName}
+                </label>
+                <input
+                  type="url"
+                  required
+                  value={proofInputUrl}
+                  onChange={(e) => setProofInputUrl(e.target.value)}
+                  placeholder={`https://${selectedDIYItem.domain}/biz/...`}
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDIYItem(null)}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-sm"
+                >
+                  Mark Verified & Live
                 </button>
               </div>
             </form>

@@ -311,48 +311,14 @@ export default function HeatmapsPage() {
       {/* 📌 MODULE TAB 1: HEATMAP & GRID ENGINE */}
       {activeTab === 'GRID' && (
         <div className="space-y-6">
-          {/* Dashboard Summary Widgets */}
-          {activeScan && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Visibility Score</span>
-                <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 flex items-center">
-                  <Award className="w-5 h-5 mr-1.5 text-emerald-500" />
-                  {activeScan.visibilityScore || 78}%
-                </div>
-                <span className="text-[10px] text-slate-500 font-semibold block mt-0.5">Weighted Map Index</span>
-              </div>
-
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Average Rank</span>
-                <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                  #{activeScan.averageRank}
-                </div>
-                <span className="text-[10px] text-slate-500 font-semibold block mt-0.5">Across {activeScan.points.length} nodes</span>
-              </div>
-
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Best / Weakest Rank</span>
-                <div className="text-xl font-black text-indigo-600 dark:text-indigo-400 mt-1">
-                  #{activeScan.highestRank || 1} / #{activeScan.lowestRank || 20}
-                </div>
-                <span className="text-[10px] text-slate-500 font-semibold block mt-0.5">Map Rank Extremes</span>
-              </div>
-
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">SoLV % (Top 3 Rate)</span>
-                <div className="text-2xl font-black text-brand-600 dark:text-brand-400 mt-1">
-                  {activeScan.shareOfLocalVoice}%
-                </div>
-                <span className="text-[10px] text-slate-500 font-semibold block mt-0.5">Share of Local Voice</span>
-              </div>
-            </div>
-          )}
-
           {/* Geo-Grid Heatmap Component */}
           {activeScan && (
             <div className="space-y-6">
-              <GeoGridMap scan={activeScan} />
+              <GeoGridMap
+                scan={activeScan}
+                allScans={scans}
+                onSelectScan={(s) => setActiveScan(s)}
+              />
               <HistoricalPlayback
                 scans={scans}
                 selectedScanId={activeScan.id}
@@ -643,11 +609,15 @@ export default function HeatmapsPage() {
 
                 <div>
                   <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1 flex justify-between items-center">
-                    <span>Radius (Miles)</span>
-                    {radiusMiles && <span className="text-[10px] text-brand-600 dark:text-brand-400 font-extrabold">{radiusMiles} mi</span>}
+                    <span>Search Radius (Miles & km)</span>
+                    {radiusMiles && (
+                      <span className="text-[10px] text-brand-600 dark:text-brand-400 font-extrabold">
+                        {radiusMiles} mi ({(radiusMiles * 1.60934).toFixed(1)} km)
+                      </span>
+                    )}
                   </label>
                   <select
-                    value={isCustomRadius ? 'CUSTOM' : radiusMiles}
+                    value={isCustomRadius ? 'CUSTOM' : radiusMiles.toString()}
                     onChange={(e) => {
                       if (e.target.value === 'CUSTOM') {
                         setIsCustomRadius(true);
@@ -660,16 +630,16 @@ export default function HeatmapsPage() {
                     }}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2 font-semibold"
                   >
-                    <option value={0.5}>0.5 Miles</option>
-                    <option value={1.0}>1.0 Mile</option>
-                    <option value={2.0}>2.0 Miles</option>
-                    <option value={3.0}>3.0 Miles</option>
-                    <option value={5.0}>5.0 Miles</option>
-                    <option value={7.5}>7.5 Miles</option>
-                    <option value={10.0}>10.0 Miles</option>
-                    <option value={15.0}>15.0 Miles</option>
-                    <option value={20.0}>20.0 Miles</option>
-                    <option value="CUSTOM">✏️ Custom Radius...</option>
+                    <option value="0.5">0.5 Miles (0.8 km)</option>
+                    <option value="1">1.0 Mile (1.6 km)</option>
+                    <option value="2">2.0 Miles (3.2 km)</option>
+                    <option value="3">3.0 Miles (4.8 km)</option>
+                    <option value="5">5.0 Miles (8.0 km)</option>
+                    <option value="7.5">7.5 Miles (12.1 km)</option>
+                    <option value="10">10.0 Miles (16.1 km)</option>
+                    <option value="15">15.0 Miles (24.1 km)</option>
+                    <option value="20">20.0 Miles (32.2 km)</option>
+                    <option value="CUSTOM">✏️ Custom Radius (Miles & km)...</option>
                   </select>
 
                   {isCustomRadius && (
@@ -679,7 +649,7 @@ export default function HeatmapsPage() {
                         step="0.1"
                         min="0.1"
                         max="100"
-                        placeholder="Enter custom radius (e.g. 3.5)"
+                        placeholder="Enter custom radius in miles (e.g. 3.5)"
                         value={customRadiusInput}
                         onChange={(e) => {
                           setCustomRadiusInput(e.target.value);
@@ -691,7 +661,7 @@ export default function HeatmapsPage() {
                         className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2 font-bold focus:ring-2 focus:ring-brand-500 focus:outline-none"
                       />
                       <span className="text-[10px] text-slate-400 font-medium block">
-                        Geodesic offset math will accurately map grid nodes for {radiusMiles} mi.
+                        Geodesic math: {radiusMiles} miles = {(radiusMiles * 1.60934).toFixed(2)} km radius boundary.
                       </span>
                     </div>
                   )}

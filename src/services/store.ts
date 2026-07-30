@@ -298,6 +298,43 @@ export class AppStore {
     return null;
   }
 
+  static getAutoReplySettings(locationId: string): import('@/lib/types').AiAutoReplySettings {
+    const key = `seo_os_auto_reply_settings_${locationId}`;
+    const defaultSettings: import('@/lib/types').AiAutoReplySettings = {
+      enabled: true,
+      approvalMode: 'FULLY_AUTOMATIC',
+      replyPositive: true,
+      replyNeutral: true,
+      replyNegative: true,
+      minStarRating: 1,
+      maxStarRating: 5,
+      delayBeforeReply: 'INSTANT',
+      language: 'English (US)',
+      tone: 'Friendly',
+      replyOnly5Star: false,
+      noAuto1Star: false,
+      skipShorterThanWords: 3,
+      ignoreDuplicates: true,
+      ignoreSpam: true,
+      onlyBusinessHours: false,
+      qualityChecks: {
+        checkGrammar: true,
+        checkProfessionalTone: true,
+        checkDuplicateResponse: true,
+        checkGbpCompliance: true,
+        checkProfanity: true,
+      },
+      brandVoicePrompt: 'Warm, professional local business tone emphasizing customer satisfaction.',
+      locationId,
+    };
+    return getStored(key, defaultSettings);
+  }
+
+  static saveAutoReplySettings(settings: import('@/lib/types').AiAutoReplySettings): void {
+    const key = `seo_os_auto_reply_settings_${settings.locationId}`;
+    setStored(key, settings);
+  }
+
   static getNotifications(orgId?: string): NotificationItem[] {
     const all = getStored(STORAGE_KEYS.NOTIFICATIONS, INITIAL_NOTIFICATIONS);
     if (!orgId) return all;
@@ -368,6 +405,12 @@ export class AppStore {
     else all.push(competitor);
     setStored(STORAGE_KEYS.COMPETITORS, all);
     return competitor;
+  }
+
+  static deleteCompetitor(id: string): void {
+    const all = getStored(STORAGE_KEYS.COMPETITORS, INITIAL_COMPETITORS);
+    const filtered = all.filter((c) => c.id !== id);
+    setStored(STORAGE_KEYS.COMPETITORS, filtered);
   }
 
   static getWebsiteAudit(locationId?: string): WebsiteAuditResult | null {

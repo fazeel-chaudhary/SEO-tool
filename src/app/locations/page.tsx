@@ -28,6 +28,7 @@ import {
   FileText,
   Send,
   CreditCard,
+  Upload,
 } from 'lucide-react';
 
 interface FAQ {
@@ -67,13 +68,15 @@ export default function LocationsPage() {
   const [bulkHoursSelected, setBulkHoursSelected] = useState<string[]>([]);
   const [bulkHoursSuccess, setBulkHoursSuccess] = useState<string | null>(null);
 
-  // Bulk Images Modal State
+  // Bulk Images Modal State (PC File Upload)
   const [showBulkImagesModal, setShowBulkImagesModal] = useState(false);
   const [bulkImagesCategory, setBulkImagesCategory] = useState<'LOGO' | 'COVER' | 'INTERIOR' | 'EXTERIOR' | 'TEAM'>('LOGO');
-  const [bulkImagesUrl, setBulkImagesUrl] = useState('https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=600&auto=format&fit=crop');
-  const [bulkImagesCaption, setBulkImagesCaption] = useState('Official Office Logo');
+  const [bulkImageFiles, setBulkImageFiles] = useState<{ name: string; size: string; dataUrl: string }[]>([]);
+  const [bulkImagesCaption, setBulkImagesCaption] = useState('Official Business Photo');
   const [bulkImagesSelected, setBulkImagesSelected] = useState<string[]>([]);
   const [bulkImagesSuccess, setBulkImagesSuccess] = useState<string | null>(null);
+  const [isDraggingImages, setIsDraggingImages] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Bulk FAQs Modal State
   const [showBulkFaqsModal, setShowBulkFaqsModal] = useState(false);
@@ -224,34 +227,62 @@ export default function LocationsPage() {
     setTimeout(() => { setShowBulkHoursModal(false); setBulkHoursSuccess(null); }, 2000);
   };
 
-  // Bulk Images handlers
+  // Bulk Images handlers (PC Upload)
   const openBulkImagesModal = () => {
     setBulkImagesSelected(locations.map((l) => l.id));
     setBulkImagesSuccess(null);
+    setBulkImageFiles([]);
     setShowBulkImagesModal(true);
   };
+
   const toggleBulkImagesLocation = (id: string) => {
     setBulkImagesSelected((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
+
+  const handlePcFileSelect = (files: FileList | File[] | null) => {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
+
+    fileArray.forEach((file) => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        const sizeKb = (file.size / 1024).toFixed(1);
+        const sizeStr = file.size > 1024 * 1024 ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : `${sizeKb} KB`;
+        setBulkImageFiles((prev) => [...prev, { name: file.name, size: sizeStr, dataUrl }]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeSelectedImage = (index: number) => {
+    setBulkImageFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleBulkImagesUpload = () => {
-    if (!bulkImagesUrl.trim()) return;
+    if (bulkImageFiles.length === 0 || bulkImagesSelected.length === 0) return;
     const count = bulkImagesSelected.length;
+    const photosAdded = bulkImageFiles.length;
+
     bulkImagesSelected.forEach((id) => {
       const loc = locations.find((l) => l.id === id);
       if (loc) {
         AppStore.saveLocation({
           ...loc,
-          gbpPhotoCount: (loc.gbpPhotoCount || 0) + 1,
+          gbpPhotoCount: (loc.gbpPhotoCount || 0) + photosAdded,
         });
       }
     });
+
     refreshState();
-    setBulkImagesSuccess(`Uploaded ${bulkImagesCategory.toLowerCase()} photo to ${count} business location profile${count !== 1 ? 's' : ''}!`);
+    setBulkImagesSuccess(`Uploaded ${photosAdded} ${bulkImagesCategory.toLowerCase()} photo${photosAdded !== 1 ? 's' : ''} from PC to ${count} location profile${count !== 1 ? 's' : ''}!`);
     setTimeout(() => {
       setShowBulkImagesModal(false);
       setBulkImagesSuccess(null);
+      setBulkImageFiles([]);
     }, 2000);
   };
 
@@ -1480,10 +1511,82 @@ export default function LocationsPage() {
                   </div>
                 </div>
 
+                {/* PC File Upload Component (URL Removed) */}
                 <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Image URL / Asset Link *</label>
-                  <input value={bulkImagesUrl} onChange={(e) => setBulkImagesUrl(e.target.value)} placeholder="https://example.com/logo.png" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">
+                    Browse & Upload Images from PC *
+                  </label>
+                  
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => handlePcFileSelect(e.target.files)}
+                    className="hidden"
+                  />
+
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setIsDraggingImages(true); }}
+                    onDragLeave={() => setIsDraggingImages(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDraggingImages(false);
+                      handlePcFileSelect(e.dataTransfer.files);
+                    }}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`p-5 border-2 border-dashed rounded-2xl text-center cursor-pointer transition-all ${
+                      isDraggingImages
+                        ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20'
+                        : 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 hover:border-emerald-500'
+                    }`}
+                  >
+                    <Upload className="w-7 h-7 text-emerald-500 mx-auto mb-1.5" />
+                    <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200">
+                      Click to Browse Images from PC or Drag & Drop
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      Select JPG, PNG, WEBP files from your computer
+                    </p>
+                  </div>
                 </div>
+
+                {/* PC Image Preview Grid */}
+                {bulkImageFiles.length > 0 && (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-slate-700 dark:text-slate-300">
+                        Selected PC Files ({bulkImageFiles.length})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setBulkImageFiles([])}
+                        className="text-[10px] font-bold text-red-500 hover:underline"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-32 overflow-y-auto pr-1">
+                      {bulkImageFiles.map((fileObj, idx) => (
+                        <div key={idx} className="bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center space-x-2">
+                          <img src={fileObj.dataUrl} alt={fileObj.name} className="w-9 h-9 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-slate-700" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate">{fileObj.name}</p>
+                            <span className="text-[9px] font-semibold text-slate-400 block">{fileObj.size}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); removeSelectedImage(idx); }}
+                            className="p-1 text-slate-400 hover:text-red-500 rounded-full shrink-0"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Image Caption / Alt Text</label>
@@ -1515,7 +1618,7 @@ export default function LocationsPage() {
 
                 <div className="flex space-x-2 pt-1">
                   <button onClick={() => setShowBulkImagesModal(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs">Cancel</button>
-                  <button onClick={handleBulkImagesUpload} disabled={!bulkImagesUrl.trim() || bulkImagesSelected.length === 0} className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center space-x-1.5 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-emerald-600/20">
+                  <button onClick={handleBulkImagesUpload} disabled={bulkImageFiles.length === 0 || bulkImagesSelected.length === 0} className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center space-x-1.5 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-emerald-600/20">
                     <ImageIcon className="w-3.5 h-3.5" />
                     <span>Upload to {bulkImagesSelected.length} Location{bulkImagesSelected.length !== 1 ? 's' : ''}</span>
                   </button>

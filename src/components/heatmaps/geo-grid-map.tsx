@@ -24,9 +24,11 @@ import {
 
 interface GeoGridMapProps {
   scan: GeoGridScan;
+  allScans?: GeoGridScan[];
+  onSelectScan?: (scan: GeoGridScan) => void;
 }
 
-export function GeoGridMap({ scan }: GeoGridMapProps) {
+export function GeoGridMap({ scan, allScans, onSelectScan }: GeoGridMapProps) {
   const [activeTab, setActiveTab] = useState<'MAP' | 'PERFORMANCE' | 'COMPARE' | 'EXPORT'>('MAP');
   const [hoveredPoint, setHoveredPoint] = useState<GridPoint | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<GridPoint | null>(null);
@@ -107,18 +109,46 @@ export function GeoGridMap({ scan }: GeoGridMapProps) {
     <div className="bg-[#0a0e1a] border border-slate-800 rounded-3xl overflow-hidden shadow-2xl space-y-0 text-white relative">
       {/* 🌟 WHITESPARK TOP FLOATING HEADER CONTROL BAR */}
       <div className="bg-[#0d1326]/95 backdrop-blur-md border-b border-slate-800/80 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300 z-20">
-        {/* Left: Keyword & Timestamp Badges */}
+        {/* Left: Keyword & Timestamp Interactive Dropdowns */}
         <div className="flex items-center space-x-2.5">
-          <div className="flex items-center space-x-1.5 bg-[#172038] hover:bg-[#1f2b4a] text-white font-bold px-3 py-1.5 rounded-xl border border-slate-700/60 cursor-pointer shadow-sm">
-            <FileText className="w-3.5 h-3.5 text-slate-400" />
-            <span>{scan.keywordTerm}</span>
-            <span className="text-[10px] text-slate-400 ml-1">▼</span>
+          {/* Keyword Select Dropdown */}
+          <div className="relative flex items-center bg-[#172038] hover:bg-[#1f2b4a] text-white font-bold px-3 py-1.5 rounded-xl border border-slate-700/60 shadow-sm cursor-pointer">
+            <FileText className="w-3.5 h-3.5 text-slate-400 mr-1.5 shrink-0" />
+            <select
+              value={scan.id}
+              onChange={(e) => {
+                const selected = allScans?.find((s) => s.id === e.target.value);
+                if (selected && onSelectScan) onSelectScan(selected);
+              }}
+              className="bg-transparent text-white font-bold text-xs focus:outline-none cursor-pointer pr-4 appearance-none"
+            >
+              {(allScans || [scan]).map((s) => (
+                <option key={s.id} value={s.id} className="bg-[#172038] text-white">
+                  🔍 {s.keywordTerm} ({s.gridSize}, {s.radiusMiles} mi)
+                </option>
+              ))}
+            </select>
+            <span className="text-[10px] text-slate-400 pointer-events-none absolute right-2.5">▼</span>
           </div>
 
-          <div className="flex items-center space-x-1.5 bg-[#172038] hover:bg-[#1f2b4a] text-slate-300 font-semibold px-3 py-1.5 rounded-xl border border-slate-700/60 cursor-pointer shadow-sm text-[11px]">
-            <span>📅</span>
-            <span>{new Date(scan.scannedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} @ 9:06 AM EST</span>
-            <span className="text-[10px] text-slate-400 ml-1">▼</span>
+          {/* Date / Timestamp Select Dropdown */}
+          <div className="relative flex items-center bg-[#172038] hover:bg-[#1f2b4a] text-slate-300 font-semibold px-3 py-1.5 rounded-xl border border-slate-700/60 shadow-sm text-[11px] cursor-pointer">
+            <span className="mr-1.5">📅</span>
+            <select
+              value={scan.id}
+              onChange={(e) => {
+                const selected = allScans?.find((s) => s.id === e.target.value);
+                if (selected && onSelectScan) onSelectScan(selected);
+              }}
+              className="bg-transparent text-slate-200 font-semibold text-xs focus:outline-none cursor-pointer pr-4 appearance-none"
+            >
+              {(allScans || [scan]).map((s) => (
+                <option key={s.id} value={s.id} className="bg-[#172038] text-white">
+                  {new Date(s.scannedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} — "{s.keywordTerm}"
+                </option>
+              ))}
+            </select>
+            <span className="text-[10px] text-slate-400 pointer-events-none absolute right-2.5">▼</span>
           </div>
         </div>
 

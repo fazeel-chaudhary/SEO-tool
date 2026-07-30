@@ -43,6 +43,7 @@ export interface Location {
   address: string;
   city: string;
   state: string;
+  country?: string;
   zip: string;
   phone: string;
   website?: string;
@@ -61,15 +62,73 @@ export interface Location {
   createdAt: string;
 }
 
+export interface KeywordRecommendation {
+  action: string;
+  category: 'GBP' | 'REVIEWS' | 'PHOTOS' | 'POSTS' | 'CITATIONS' | 'ON_PAGE' | 'BACKLINKS' | 'NAP';
+  impact: 'HIGH' | 'MEDIUM' | 'LOW';
+  description: string;
+}
+
+export interface KeywordPrediction {
+  estimatedRank: number;
+  confidenceScore: number; // 0-100%
+  rankingTrend: 'IMPROVING' | 'STABLE' | 'DECLINING';
+  probTop3: number; // percentage
+  probTop10: number; // percentage
+  aiNotes?: string;
+  hasEnoughData: boolean;
+}
+
+export interface KeywordCompetitor {
+  rank: number;
+  name: string;
+  rating: number;
+  reviewCount: number;
+  distanceKm: string;
+  visibilityScore: number;
+  whyTheyRankAbove: string;
+}
+
 export interface Keyword {
   id: string;
   term: string;
   city: string;
+  state?: string;
+  country?: string;
   zip?: string;
+  targetLocation?: string; // e.g. "Chicago, IL, 60601"
+  searchRadiusKm?: number; // e.g. 1, 3, 5, 10, 25
+  deviceType?: 'DESKTOP' | 'MOBILE';
+  language?: string; // e.g. "English", "Spanish"
+  searchEngine?: 'GOOGLE' | 'GOOGLE_MAPS' | 'BING' | 'BOTH';
+  trackType?: 'ORGANIC' | 'LOCAL_PACK' | 'GOOGLE_MAPS' | 'BOTH';
+  
+  // Location Ranks
+  googleMapsRank?: number | null;
+  localPackRank?: number | null;
+  organicRank?: number | null;
+  previousRank?: number | null;
+  rankChange?: number;
+  bestRank?: number;
+  
+  // Intelligence Metrics
+  visibilityScore?: number; // 0 - 100%
+  searchVolume?: number; // e.g. 6500
+  difficulty?: number; // 0 - 100%
+  searchIntent?: 'LOCAL' | 'TRANSACTIONAL' | 'INFORMATIONAL';
+  opportunityScore?: number; // 0 - 100
+  
+  // Prediction & Recommendations & Competitors
+  prediction?: KeywordPrediction;
+  recommendations?: KeywordRecommendation[];
+  competitors?: KeywordCompetitor[];
+  
+  // Compatibility & Association
+  latestRank?: number; // for backward compatibility
   gridPoints?: string[];
   locationId: string;
-  latestRank?: number;
-  rankChange?: number;
+  lastUpdated?: string;
+  createdAt?: string;
 }
 
 export interface RankingSnapshot {
@@ -182,11 +241,12 @@ export interface CompetitorMetric {
   secondaryCategories?: string[];
   reviewGrowthRate?: string;
   mapRankPosition?: number;
+  mapRank?: number;
+  isPinned?: boolean;
   distanceMiles?: number;
   qnaCount?: number;
   confidenceScore?: number;
   verificationStatus?: 'VERIFIED' | 'NEEDS_VERIFICATION';
-  isPinned?: boolean;
   isLocked?: boolean;
   isPermanentlyClosed?: boolean;
   aiValidated?: boolean;
@@ -427,9 +487,13 @@ export interface DIYCitationOpportunity {
   submissionUrl: string;
   whyRecommended: string;
   isCompetitorGap: boolean;
+  competitorsListedCount?: number;
   competitorName?: string;
   rankingImpactScore: number;
-  status: 'RECOMMENDED' | 'IN_PROGRESS' | 'COMPLETED' | 'IGNORED';
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'SUBMITTED' | 'PENDING_APPROVAL' | 'LIVE' | 'REJECTED' | 'NEEDS_UPDATE' | 'COMPLETED' | 'RECOMMENDED' | 'IGNORED';
+  dateAdded?: string;
+  lastChecked?: string;
+  liveUrl?: string;
   proofUrl?: string;
   completedAt?: string;
   locationId: string;
@@ -457,6 +521,34 @@ export interface DFYCitationOrder {
   orderedAt: string;
   completedAt?: string;
   items: DFYCitationSubmissionItem[];
+}
+
+export interface AiAutoReplySettings {
+  enabled: boolean;
+  approvalMode: 'FULLY_AUTOMATIC' | 'APPROVAL_REQUIRED' | 'DRAFT_ONLY';
+  replyPositive: boolean;
+  replyNeutral: boolean;
+  replyNegative: boolean;
+  minStarRating: number;
+  maxStarRating: number;
+  delayBeforeReply: 'INSTANT' | '30_MIN' | '1_HOUR' | '6_HOURS' | '24_HOURS';
+  language: string;
+  tone: 'Professional' | 'Friendly' | 'Formal' | 'Casual' | 'Luxury' | 'Empathetic' | 'Apologetic' | 'Enthusiastic';
+  replyOnly5Star: boolean;
+  noAuto1Star: boolean;
+  skipShorterThanWords: number;
+  ignoreDuplicates: boolean;
+  ignoreSpam: boolean;
+  onlyBusinessHours: boolean;
+  qualityChecks: {
+    checkGrammar: boolean;
+    checkProfessionalTone: boolean;
+    checkDuplicateResponse: boolean;
+    checkGbpCompliance: boolean;
+    checkProfanity: boolean;
+  };
+  brandVoicePrompt?: string;
+  locationId: string;
 }
 
 export interface ReviewCampaign {

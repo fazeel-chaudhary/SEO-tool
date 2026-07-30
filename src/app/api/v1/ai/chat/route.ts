@@ -102,7 +102,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const openAiKey = process.env.OPENAI_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY;
 
     const systemPrompt = buildSystemPrompt(
@@ -111,45 +110,11 @@ export async function POST(request: NextRequest) {
       competitors || []
     );
 
-    // 1. Try OpenAI GPT-4o
-    if (openAiKey) {
-      try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openAiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o',
-            temperature: 0.3,
-            max_tokens: 1200,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: query }
-            ]
-          })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const content = data.choices?.[0]?.message?.content;
-          if (content) {
-            return NextResponse.json({ status: 'success', answer: content, source: 'openai-live' });
-          }
-        } else {
-          console.warn('OpenAI api notice:', response.statusText);
-        }
-      } catch (err) {
-        console.warn('OpenAI fetch error:', err);
-      }
-    }
-
-    // 2. Try Gemini (1.5 / 2.0 Flash)
+    // 1. Try Google Gemini API
     if (geminiKey) {
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -174,7 +139,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ status: 'success', answer: content, source: 'gemini-live' });
           }
         } else {
-          console.warn('Gemini api notice:', response.statusText);
+          console.warn('Gemini API notice:', await response.text());
         }
       } catch (err) {
         console.warn('Gemini fetch notice:', err);

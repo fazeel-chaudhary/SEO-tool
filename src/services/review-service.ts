@@ -14,14 +14,37 @@ export class ReviewService {
   /**
    * AI Reply Generator: Drafts a polite, professional, and SEO-optimized reply for a customer review.
    */
-  static generateAiReply(review: Review, businessName: string): string {
+  static generateAiReply(
+    review: Review,
+    businessName: string,
+    tone: string = 'Friendly',
+    language: string = 'English (US)'
+  ): string {
     const name = review.reviewerName.split(' ')[0] || 'Customer';
 
     if (review.rating >= 4) {
+      if (tone === 'Luxury') {
+        return `Dear ${name}, it is our absolute pleasure to serve you at ${businessName}. We are truly delighted that your experience surpassed expectations. We look forward to hosting your next visit.`;
+      }
+      if (tone === 'Enthusiastic') {
+        return `Wow ${name}! Thank you so much for this glowing 5-star review! The team at ${businessName} is thrilled to hear your feedback! We can't wait to see you again soon! 🎉`;
+      }
+      if (tone === 'Formal') {
+        return `Dear ${name}, thank you for taking the time to write a positive review for ${businessName}. Your patronage is greatly appreciated, and we remain dedicated to providing exceptional service.`;
+      }
+      if (tone === 'Casual') {
+        return `Hey ${name}! Thanks a ton for dropping by ${businessName} and sharing the love! Glad you had a great time!`;
+      }
       return `Hi ${name}, thank you so much for your wonderful 5-star review! We are delighted to serve you at ${businessName} and look forward to welcoming you back soon!`;
     } else if (review.rating === 3) {
+      if (tone === 'Empathetic') {
+        return `Hi ${name}, thank you for your honest feedback. We understand how important every detail is at ${businessName}. We'd love the opportunity to make your next visit 5-star worthy.`;
+      }
       return `Hello ${name}, thank you for taking the time to share your feedback. At ${businessName}, we constantly strive to deliver a top-tier experience. We appreciate your insights and hope to exceed your expectations next time.`;
     } else {
+      if (tone === 'Apologetic') {
+        return `Dear ${name}, we are deeply sorry for failing to meet your expectations at ${businessName}. Your experience does not reflect our standards. Please contact our management team directly so we can resolve this immediately.`;
+      }
       return `Dear ${name}, thank you for bringing this to our attention. At ${businessName}, we take customer satisfaction very seriously. We sincerely apologize for falling short of your expectations regarding your experience. Please reach out to us directly so we can resolve this for you.`;
     }
   }
