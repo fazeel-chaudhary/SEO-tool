@@ -36,7 +36,8 @@ import {
   ArrowUpDown,
   Download,
   Plus,
-  Sparkles,
+  Target,
+  Brain,
   MapPin,
   ShieldCheck,
   X,
@@ -45,6 +46,40 @@ import {
 } from 'lucide-react';
 
 type SortField = 'rank' | 'reviews' | 'rating' | 'seoScore' | 'citations' | 'distance' | 'da';
+
+function generateAiInsightForCompetitor(comp: CompetitorMetric): string {
+  const rank = Number(comp.mapRank || comp.mapRankPosition || 1);
+  const reviews = Number(comp.reviewCount || 0);
+  const rating = Number(comp.rating || 0);
+  const growthStr = comp.reviewGrowthRate ? String(comp.reviewGrowthRate).replace(/[^0-9.]/g, '') : '';
+  const growth = parseFloat(growthStr) || 0;
+  const citations = Number(comp.citationCount || 0);
+  const da = Number(comp.domainAuthority || 0);
+  const photos = Number(comp.photoCount || 0);
+  const dist = Number(comp.distanceMiles || 0);
+  const posts = Number(comp.totalPosts || 0);
+
+  // Build exact metric highlights based on actual data
+  const highlights: string[] = [];
+
+  if (reviews > 0) highlights.push(`${reviews} total reviews`);
+  if (growth > 0) highlights.push(`+${growth} reviews/mo growth`);
+  if (rating > 0) highlights.push(`${rating}★ rating`);
+  if (citations > 0) highlights.push(`${citations} directory citations`);
+  if (photos > 0) highlights.push(`${photos} GBP photos`);
+  if (da > 0) highlights.push(`DA ${da} authority`);
+  if (posts > 0) highlights.push(`${posts} Google Posts`);
+
+  const metricsSummary = highlights.length > 0 ? highlights.join(', ') : 'standard GBP signals';
+
+  if (rank <= 3) {
+    return `Ranks #${rank} on Google Maps (${dist} mi away). Primary competitive advantages: ${metricsSummary}.`;
+  } else if (rank <= 10) {
+    return `Ranks #${rank} on Google Maps (${dist} mi away). Key competitive metrics: ${metricsSummary}.`;
+  } else {
+    return `Ranks #${rank} on Google Maps (${dist} mi away). Opportunity gap: Review growth is +${growth}/mo with ${photos} photos and ${citations} citations.`;
+  }
+}
 
 export default function CompetitorsPage() {
   const { activeLocation, refreshState } = useOrg();
@@ -601,11 +636,11 @@ export default function CompetitorsPage() {
 
                             <div className="space-y-1 p-3 bg-brand-50/50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-900 rounded-xl">
                               <span className="font-extrabold text-brand-900 dark:text-brand-200 block flex items-center">
-                                <Sparkles className="w-3.5 h-3.5 mr-1 text-brand-600" />
+                                <Target className="w-3.5 h-3.5 mr-1 text-brand-600" />
                                 AI Competitive Insight
                               </span>
                               <p className="text-[10px] text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                                Ranks #{comp.mapRank} due to higher review velocity (+12/mo) and 45 geotagged interior photos.
+                                {generateAiInsightForCompetitor(comp)}
                               </p>
                             </div>
                           </div>
@@ -822,7 +857,7 @@ export default function CompetitorsPage() {
               {auditTab === 'GAP_ANALYSIS' && activeGapAnalysis && (
                 <div className="space-y-4">
                   <h3 className="font-extrabold text-sm text-slate-900 dark:text-white flex items-center">
-                    <Sparkles className="w-4 h-4 mr-2 text-brand-600" />
+                    <Brain className="w-4 h-4 mr-2 text-brand-600" />
                     AI Competitive Gap Analysis
                   </h3>
 

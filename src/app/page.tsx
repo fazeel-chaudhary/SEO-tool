@@ -32,7 +32,7 @@ export default function HomePage() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'MONTHLY' | 'ANNUAL'>('ANNUAL');
-  
+
   // Interactive ROI Calculator State
   const [locationCount, setLocationCount] = useState<number>(5);
   const [keywordCount, setKeywordCount] = useState<number>(10);
@@ -74,11 +74,11 @@ export default function HomePage() {
           </Link>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-8 text-xs font-black text-slate-900 dark:text-slate-200">
-            <a href="#features" className="hover:text-brand-500 transition-colors">Platform Features</a>
-            <a href="#geogrid" className="hover:text-brand-500 transition-colors">Geo-Grid Heatmaps</a>
-            <a href="#calculator" className="hover:text-brand-500 transition-colors">ROI Calculator</a>
-            <a href="#pricing" className="hover:text-brand-500 transition-colors">Pricing</a>
+          <nav className="hidden md:flex items-center space-x-8 text-xs font-black text-slate-950 dark:text-slate-200">
+            <a href="#features" className="hover:text-brand-600 transition-colors">Platform Features</a>
+            <a href="#geogrid" className="hover:text-brand-600 transition-colors">Geo-Grid Heatmaps</a>
+            <a href="#calculator" className="hover:text-brand-600 transition-colors">ROI Calculator</a>
+            <a href="#pricing" className="hover:text-brand-600 transition-colors">Pricing</a>
           </nav>
 
           {/* Action CTAs & Theme Toggle */}
@@ -86,7 +86,7 @@ export default function HomePage() {
             {/* Theme Toggle Button */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2.5 rounded-xl text-slate-900 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 transition-all border border-brand-500/30 dark:border-slate-800 shadow-sm"
+              className="p-2.5 rounded-xl text-slate-950 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 transition-all border border-brand-500/30 dark:border-slate-800 shadow-sm"
               title="Toggle Light / Dark Mode"
               id="home-theme-toggle-btn"
             >
@@ -95,7 +95,7 @@ export default function HomePage() {
 
             <Link
               href="/login"
-              className="text-xs font-extrabold text-slate-900 dark:text-slate-200 hover:text-brand-600 dark:hover:text-white px-4 py-2.5 rounded-xl transition-all border border-brand-500/30 dark:border-slate-800 hover:border-brand-500 bg-white/80 dark:bg-transparent shadow-sm"
+              className="text-xs font-extrabold text-slate-950 dark:text-slate-200 hover:text-brand-600 dark:hover:text-white px-4 py-2.5 rounded-xl transition-all border border-brand-500/30 dark:border-slate-800 hover:border-brand-500 bg-white/80 dark:bg-transparent shadow-sm"
               id="header-sign-in-btn"
             >
               Sign In
@@ -117,7 +117,7 @@ export default function HomePage() {
       <section className="relative pt-16 pb-24 px-4 lg:px-8 overflow-hidden">
         <div className="max-w-5xl mx-auto text-center space-y-6">
           {/* Eyebrow Pill */}
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-greenAccent border border-brand-500/30 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-black shadow-sm">
+          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-greenAccent border border-brand-500/30 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 text-xs font-black shadow-sm">
             <Award className="w-4 h-4 text-brand-500" />
             <span>#1 Local Ranking Grid & GBP Audit Platform for Agencies</span>
           </div>
@@ -152,10 +152,10 @@ export default function HomePage() {
           </div>
 
           {/* Sub-text guarantee */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-900 dark:text-slate-300 font-bold pt-2">
-            <span className="flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600 dark:text-emerald-400" /> No Credit Card Required</span>
-            <span className="flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600 dark:text-emerald-400" /> Instant 2-Minute Setup</span>
-            <span className="flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600 dark:text-emerald-400" /> Agency White-Label Ready</span>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-950 dark:text-slate-300 font-black pt-2">
+            <span className="flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-700 dark:text-emerald-400" /> No Credit Card Required</span>
+            <span className="flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-700 dark:text-emerald-400" /> Instant 2-Minute Setup</span>
+            <span className="flex items-center"><CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-700 dark:text-emerald-400" /> Agency White-Label Ready</span>
           </div>
         </div>
 
@@ -166,9 +166,9 @@ export default function HomePage() {
               <div className="w-3 h-3 rounded-full bg-red-500" />
               <div className="w-3 h-3 rounded-full bg-amber-500" />
               <div className="w-3 h-3 rounded-full bg-emerald-500" />
-              <span className="font-extrabold text-slate-900 dark:text-slate-300 ml-2">Austin Dental Center • Geo-Grid Matrix (5×5)</span>
+              <span className="font-black text-slate-950 dark:text-slate-200 ml-2">Austin Dental Center • Geo-Grid Matrix (5×5)</span>
             </div>
-            <span className="text-emerald-800 dark:text-emerald-400 font-black bg-greenAccent dark:bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-600/30">
+            <span className="text-emerald-900 dark:text-emerald-300 font-black bg-greenAccent dark:bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-600/30">
               Share of Local Voice (SoLV): 84%
             </span>
           </div>
@@ -198,12 +198,12 @@ export default function HomePage() {
               <div className="p-4 bg-white dark:bg-slate-900 border border-brand-500/20 dark:border-slate-800 rounded-xl space-y-1 shadow-sm">
                 <span className="text-[10px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-wider">Average Map Rank</span>
                 <div className="text-2xl font-black text-slate-950 dark:text-white">#2.4 Local Pack</div>
-                <p className="text-xs text-slate-800 dark:text-slate-300 font-bold">Scanned across 25 GPS neighborhood coordinates in Austin, TX.</p>
+                <p className="text-xs text-slate-900 dark:text-slate-300 font-bold">Scanned across 25 GPS neighborhood coordinates in Austin, TX.</p>
               </div>
 
               <div className="p-4 bg-white dark:bg-slate-900 border border-brand-500/20 dark:border-slate-800 rounded-xl space-y-1 shadow-sm">
                 <span className="text-[10px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-wider">Top Competitor Defeated</span>
-                <div className="text-sm font-black text-brand-500">Capital City Dental (+14 places outranked)</div>
+                <div className="text-sm font-black text-brand-600 dark:text-brand-400">Capital City Dental (+14 places outranked)</div>
               </div>
 
               <Link
@@ -221,11 +221,11 @@ export default function HomePage() {
       {/* 🏢 TRUSTED BY LOGO BANNER */}
       <section className="py-10 border-y border-brand-500/20 dark:border-slate-800 bg-greenAccent dark:bg-slate-950/60">
         <div className="max-w-6xl mx-auto px-4 text-center space-y-4">
-          <p className="text-xs font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest">
+          <p className="text-xs font-black text-slate-950 dark:text-slate-300 uppercase tracking-widest">
             Trusted by over 50,000+ local businesses, SEO agencies, and franchise brands
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14 font-black text-slate-900 dark:text-slate-300 text-sm sm:text-base">
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14 font-black text-slate-950 dark:text-slate-300 text-sm sm:text-base">
             <span className="flex items-center space-x-1"><Building2 className="w-5 h-5 text-brand-500 mr-1" /> DENTAL AGENCY CO.</span>
             <span className="flex items-center space-x-1"><Globe className="w-5 h-5 text-indigo-700 dark:text-indigo-400 mr-1" /> METRO HEALTHCARE</span>
             <span className="flex items-center space-x-1"><Award className="w-5 h-5 text-amber-700 dark:text-amber-400 mr-1" /> APEX LOCAL MARKETING</span>
@@ -237,13 +237,13 @@ export default function HomePage() {
       {/* ⚡ CORE SOLUTION PILLARS */}
       <section id="features" className="py-24 px-4 lg:px-8 max-w-7xl mx-auto space-y-16">
         <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <span className="text-xs font-black uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-greenAccent dark:bg-brand-500/10 px-3 py-1 rounded-full border border-brand-500/30">
+          <span className="text-xs font-black uppercase tracking-wider text-brand-700 dark:text-brand-400 bg-greenAccent dark:bg-brand-500/10 px-3 py-1 rounded-full border border-brand-500/30">
             Complete Local Search Suite
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-950 dark:text-white">
             Everything You Need to Win Google Maps & Local Pack Rankings
           </h2>
-          <p className="text-sm sm:text-base text-slate-800 dark:text-slate-300 font-bold">
+          <p className="text-sm sm:text-base text-slate-900 dark:text-slate-300 font-bold">
             Replaces 5 separate SEO tools with one unified multi-location platform designed for maximum accuracy and client reporting.
           </p>
         </div>
@@ -256,10 +256,10 @@ export default function HomePage() {
               <Navigation className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-black text-slate-950 dark:text-white">Interactive Geo-Grid Heatmaps</h3>
-            <p className="text-xs text-slate-800 dark:text-slate-300 font-medium leading-relaxed">
+            <p className="text-xs text-slate-900 dark:text-slate-300 font-semibold leading-relaxed">
               Track Google Maps rankings across up to 225 scan points (15×15 matrix) with real-time SERP competitor inspector drawers.
             </p>
-            <ul className="space-y-1.5 text-xs text-slate-900 dark:text-slate-200 font-extrabold pt-2">
+            <ul className="space-y-1.5 text-xs text-slate-950 dark:text-slate-200 font-black pt-2">
               <li className="flex items-center"><Check className="w-3.5 h-3.5 text-brand-500 mr-2" /> 3×3 up to 15×15 Grid Sizes</li>
               <li className="flex items-center"><Check className="w-3.5 h-3.5 text-brand-500 mr-2" /> Share of Local Voice (SoLV %)</li>
               <li className="flex items-center"><Check className="w-3.5 h-3.5 text-brand-500 mr-2" /> Side-by-Side Competitor Overlay</li>
@@ -272,13 +272,13 @@ export default function HomePage() {
               <Building2 className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-black text-slate-950 dark:text-white">GBP Audit & Post Automation</h3>
-            <p className="text-xs text-slate-800 dark:text-slate-300 font-medium leading-relaxed">
+            <p className="text-xs text-slate-900 dark:text-slate-300 font-semibold leading-relaxed">
               Audit Google Business Profiles for missing categories, NAP inconsistencies, photo counts, and automated scheduled posts.
             </p>
-            <ul className="space-y-1.5 text-xs text-slate-900 dark:text-slate-200 font-extrabold pt-2">
-              <li className="flex items-center"><Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 mr-2" /> Automated Post Scheduler</li>
-              <li className="flex items-center"><Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 mr-2" /> Photo & Category Audits</li>
-              <li className="flex items-center"><Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 mr-2" /> Verification Alerts</li>
+            <ul className="space-y-1.5 text-xs text-slate-950 dark:text-slate-200 font-black pt-2">
+              <li className="flex items-center"><Check className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 mr-2" /> Automated Post Scheduler</li>
+              <li className="flex items-center"><Check className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 mr-2" /> Photo & Category Audits</li>
+              <li className="flex items-center"><Check className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 mr-2" /> Verification Alerts</li>
             </ul>
           </div>
 
@@ -288,13 +288,13 @@ export default function HomePage() {
               <Layers className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-black text-slate-950 dark:text-white">Citation Builder & Duplicates</h3>
-            <p className="text-xs text-slate-800 dark:text-slate-300 font-medium leading-relaxed">
+            <p className="text-xs text-slate-900 dark:text-slate-300 font-semibold leading-relaxed">
               Audit 50+ directory citations (Yelp, Apple Maps, Bing, Facebook) to fix NAP errors and suppress duplicate listings.
             </p>
-            <ul className="space-y-1.5 text-xs text-slate-900 dark:text-slate-200 font-extrabold pt-2">
-              <li className="flex items-center"><Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 mr-2" /> 50+ Directory Audits</li>
-              <li className="flex items-center"><Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 mr-2" /> 1-Click Duplicate Suppression</li>
-              <li className="flex items-center"><Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 mr-2" /> NAP Consistency Baseline</li>
+            <ul className="space-y-1.5 text-xs text-slate-950 dark:text-slate-200 font-black pt-2">
+              <li className="flex items-center"><Check className="w-3.5 h-3.5 text-indigo-700 dark:text-indigo-400 mr-2" /> 50+ Directory Audits</li>
+              <li className="flex items-center"><Check className="w-3.5 h-3.5 text-indigo-700 dark:text-indigo-400 mr-2" /> 1-Click Duplicate Suppression</li>
+              <li className="flex items-center"><Check className="w-3.5 h-3.5 text-indigo-700 dark:text-indigo-400 mr-2" /> NAP Consistency Baseline</li>
             </ul>
           </div>
         </div>
@@ -304,9 +304,9 @@ export default function HomePage() {
       <section id="calculator" className="py-20 px-4 lg:px-8 bg-greenAccent/60 dark:bg-slate-900 border-y border-brand-500/20 dark:border-slate-800">
         <div className="max-w-5xl mx-auto space-y-10">
           <div className="text-center space-y-3">
-            <span className="text-xs font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-400">Interactive Agency Calculator</span>
+            <span className="text-xs font-black uppercase tracking-wider text-emerald-900 dark:text-emerald-400">Interactive Agency Calculator</span>
             <h2 className="text-3xl font-black text-slate-950 dark:text-white">Calculate Your Agency Time Savings & ROI</h2>
-            <p className="text-xs text-slate-800 dark:text-slate-300 font-bold">See how much time and traffic gain Local SEO OS generates for your business.</p>
+            <p className="text-xs text-slate-900 dark:text-slate-300 font-black">See how much time and traffic gain Local SEO OS generates for your business.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white dark:bg-slate-950 p-8 rounded-3xl border border-brand-500/20 dark:border-slate-800 shadow-md">
@@ -315,7 +315,7 @@ export default function HomePage() {
               <div>
                 <div className="flex justify-between font-black text-slate-950 dark:text-white mb-2">
                   <span>Number of Business Locations:</span>
-                  <span className="text-brand-500 font-black text-base">{locationCount} Locations</span>
+                  <span className="text-brand-600 dark:text-brand-400 font-black text-base">{locationCount} Locations</span>
                 </div>
                 <input
                   type="range"
@@ -330,7 +330,7 @@ export default function HomePage() {
               <div>
                 <div className="flex justify-between font-black text-slate-950 dark:text-white mb-2">
                   <span>Target Keywords per Location:</span>
-                  <span className="text-brand-500 font-black text-base">{keywordCount} Keywords</span>
+                  <span className="text-brand-600 dark:text-brand-400 font-black text-base">{keywordCount} Keywords</span>
                 </div>
                 <input
                   type="range"
@@ -346,15 +346,15 @@ export default function HomePage() {
             {/* Live Outputs */}
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 bg-greenAccent dark:bg-slate-900 border border-emerald-600/30 dark:border-slate-800 rounded-2xl text-center space-y-1 shadow-sm">
-                <span className="text-[10px] font-black text-slate-900 dark:text-slate-400 uppercase">Estimated Monthly Traffic</span>
-                <div className="text-3xl font-black text-emerald-800 dark:text-emerald-400">+{estimatedTrafficGain}</div>
-                <span className="text-[10px] text-slate-800 dark:text-slate-400 font-bold block">Local customer clicks</span>
+                <span className="text-[10px] font-black text-slate-950 dark:text-slate-400 uppercase">Estimated Monthly Traffic</span>
+                <div className="text-3xl font-black text-emerald-900 dark:text-emerald-400">+{estimatedTrafficGain}</div>
+                <span className="text-[10px] text-slate-900 dark:text-slate-400 font-bold block">Local customer clicks</span>
               </div>
 
               <div className="p-4 bg-greenAccent dark:bg-slate-900 border border-brand-500/30 dark:border-slate-800 rounded-2xl text-center space-y-1 shadow-sm">
-                <span className="text-[10px] font-black text-slate-900 dark:text-slate-400 uppercase">Agency Hours Saved</span>
-                <div className="text-3xl font-black text-brand-500">{estimatedHoursSaved} hrs/mo</div>
-                <span className="text-[10px] text-slate-800 dark:text-slate-400 font-bold block">Automated reporting</span>
+                <span className="text-[10px] font-black text-slate-950 dark:text-slate-400 uppercase">Agency Hours Saved</span>
+                <div className="text-3xl font-black text-brand-600 dark:text-brand-400">{estimatedHoursSaved} hrs/mo</div>
+                <span className="text-[10px] text-slate-900 dark:text-slate-400 font-bold block">Automated reporting</span>
               </div>
             </div>
           </div>
@@ -364,22 +364,22 @@ export default function HomePage() {
       {/* 💰 PRICING PLANS */}
       <section id="pricing" className="py-24 px-4 lg:px-8 max-w-7xl mx-auto space-y-12">
         <div className="text-center space-y-4 max-w-2xl mx-auto">
-          <span className="text-xs font-black uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-greenAccent dark:bg-brand-500/10 px-3 py-1 rounded-full border border-brand-500/20">
+          <span className="text-xs font-black uppercase tracking-wider text-brand-700 dark:text-brand-400 bg-greenAccent dark:bg-brand-500/10 px-3 py-1 rounded-full border border-brand-500/20">
             Simple & Transparent Pricing
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-950 dark:text-white">Choose the Right Plan for Your Business</h2>
-          
+
           {/* Monthly / Annual Toggle */}
           <div className="inline-flex items-center bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-brand-500/20 dark:border-slate-800 text-xs font-bold mt-4 shadow-sm">
             <button
               onClick={() => setBillingCycle('MONTHLY')}
-              className={`px-4 py-2 rounded-xl transition-all ${billingCycle === 'MONTHLY' ? 'bg-brand-500 text-white font-black' : 'text-slate-800 dark:text-slate-400'}`}
+              className={`px-4 py-2 rounded-xl transition-all ${billingCycle === 'MONTHLY' ? 'bg-brand-500 text-white font-black' : 'text-slate-900 dark:text-slate-400 font-bold'}`}
             >
               Monthly Billing
             </button>
             <button
               onClick={() => setBillingCycle('ANNUAL')}
-              className={`px-4 py-2 rounded-xl transition-all ${billingCycle === 'ANNUAL' ? 'bg-brand-500 text-white font-black' : 'text-slate-800 dark:text-slate-400'}`}
+              className={`px-4 py-2 rounded-xl transition-all ${billingCycle === 'ANNUAL' ? 'bg-brand-500 text-white font-black' : 'text-slate-900 dark:text-slate-400 font-bold'}`}
             >
               Annual Billing (Save 20%)
             </button>
@@ -391,15 +391,13 @@ export default function HomePage() {
           {/* Plan 1 */}
           <div className="bg-white dark:bg-slate-900 border border-brand-500/20 dark:border-slate-800 p-8 rounded-3xl space-y-6 flex flex-col justify-between shadow-md">
             <div className="space-y-4">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-400">Single Location</span>
+              <span className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-slate-400">Single Location</span>
               <h3 className="text-xl font-black text-slate-950 dark:text-white">Starter Plan</h3>
               <div className="text-4xl font-black text-slate-950 dark:text-white">
-                ${billingCycle === 'ANNUAL' ? '29' : '35'}<span className="text-xs font-bold text-slate-700 dark:text-slate-400">/month</span>
+                ${billingCycle === 'ANNUAL' ? '29' : '35'}<span className="text-xs font-bold text-slate-900 dark:text-slate-400">/month</span>
               </div>
-              <p className="text-xs text-slate-800 dark:text-slate-300 font-bold">Ideal for small businesses tracking 1 location.</p>
-              <ul className="space-y-2 text-xs text-slate-900 dark:text-slate-300 font-extrabold pt-2">
-                <li className="flex items-center"><Check className="w-3.5 h-3.5 text-brand-500 mr-2" /> 1 Business Location</li>
-                <li className="flex items-center"><Check className="w-3.5 h-3.5 text-brand-500 mr-2" /> 5×5 Geo-Grid Scans (25 pts)</li>
+              <p className="text-xs text-slate-900 dark:text-slate-300 font-bold">Ideal for small businesses tracking 1 location.</p>
+              <ul className="space-y-2 text-xs text-slate-950 dark:text-slate-300 font-black pt-2">
                 <li className="flex items-center"><Check className="w-3.5 h-3.5 text-brand-500 mr-2" /> 15 Tracked Keywords</li>
                 <li className="flex items-center"><Check className="w-3.5 h-3.5 text-brand-500 mr-2" /> GBP Health Audit</li>
               </ul>
@@ -418,13 +416,13 @@ export default function HomePage() {
               Most Popular for Agencies
             </div>
             <div className="space-y-4">
-              <span className="text-xs font-black uppercase tracking-wider text-brand-500">Agency & Growth</span>
+              <span className="text-xs font-black uppercase tracking-wider text-brand-600 dark:text-brand-400">Agency & Growth</span>
               <h3 className="text-xl font-black text-slate-950 dark:text-white">Growth Plan</h3>
               <div className="text-4xl font-black text-slate-950 dark:text-white">
-                ${billingCycle === 'ANNUAL' ? '79' : '95'}<span className="text-xs font-bold text-slate-700 dark:text-slate-400">/month</span>
+                ${billingCycle === 'ANNUAL' ? '79' : '95'}<span className="text-xs font-bold text-slate-900 dark:text-slate-400">/month</span>
               </div>
-              <p className="text-xs text-slate-800 dark:text-slate-300 font-bold">Designed for agencies managing up to 10 locations.</p>
-              <ul className="space-y-2 text-xs text-slate-900 dark:text-slate-300 font-extrabold pt-2">
+              <p className="text-xs text-slate-900 dark:text-slate-300 font-bold">Designed for agencies managing up to 10 locations.</p>
+              <ul className="space-y-2 text-xs text-slate-950 dark:text-slate-300 font-black pt-2">
                 <li className="flex items-center"><Check className="w-3.5 h-3.5 text-brand-500 mr-2" /> 10 Business Locations</li>
                 <li className="flex items-center"><Check className="w-3.5 h-3.5 text-brand-500 mr-2" /> 15×15 Geo-Grid Scans (225 pts)</li>
                 <li className="flex items-center"><Check className="w-3.5 h-3.5 text-brand-500 mr-2" /> Unlimited Tracked Keywords</li>
@@ -443,13 +441,13 @@ export default function HomePage() {
           {/* Plan 3 */}
           <div className="bg-white dark:bg-slate-900 border border-brand-500/20 dark:border-slate-800 p-8 rounded-3xl space-y-6 flex flex-col justify-between shadow-md">
             <div className="space-y-4">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-400">Multi-Location & Enterprise</span>
+              <span className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-slate-400">Multi-Location & Enterprise</span>
               <h3 className="text-xl font-black text-slate-950 dark:text-white">Enterprise Plan</h3>
               <div className="text-4xl font-black text-slate-950 dark:text-white">
-                ${billingCycle === 'ANNUAL' ? '199' : '239'}<span className="text-xs font-bold text-slate-700 dark:text-slate-400">/month</span>
+                ${billingCycle === 'ANNUAL' ? '199' : '239'}<span className="text-xs font-bold text-slate-900 dark:text-slate-400">/month</span>
               </div>
-              <p className="text-xs text-slate-800 dark:text-slate-300 font-bold">For large franchises managing 50+ locations.</p>
-              <ul className="space-y-2 text-xs text-slate-900 dark:text-slate-300 font-extrabold pt-2">
+              <p className="text-xs text-slate-900 dark:text-slate-300 font-bold">For large franchises managing 50+ locations.</p>
+              <ul className="space-y-2 text-xs text-slate-950 dark:text-slate-300 font-black pt-2">
                 <li className="flex items-center"><Check className="w-3.5 h-3.5 text-brand-500 mr-2" /> 50+ Business Locations</li>
                 <li className="flex items-center"><Check className="w-3.5 h-3.5 text-brand-500 mr-2" /> Unlimited Geo-Grid Heatmaps</li>
                 <li className="flex items-center"><Check className="w-3.5 h-3.5 text-brand-500 mr-2" /> Custom API & Webhook Access</li>
@@ -496,7 +494,7 @@ export default function HomePage() {
       </section>
 
       {/* 📄 FOOTER */}
-      <footer className="py-12 px-4 lg:px-8 bg-greenAccent dark:bg-slate-950 border-t border-brand-500/20 dark:border-slate-900 text-xs text-slate-900 dark:text-slate-400 transition-colors duration-200">
+      <footer className="py-12 px-4 lg:px-8 bg-greenAccent dark:bg-slate-950 border-t border-brand-500/20 dark:border-slate-900 text-xs text-slate-950 dark:text-slate-400 transition-colors duration-200">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-6">
           <div className="flex items-center space-x-2.5">
             <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-brand-500/30 p-0.5 flex items-center justify-center shadow-sm shrink-0">
@@ -505,7 +503,7 @@ export default function HomePage() {
             <span className="font-black text-slate-950 dark:text-white text-sm">LOCAL SEO OS</span>
           </div>
 
-          <div className="flex space-x-6 font-black text-slate-900 dark:text-slate-300">
+          <div className="flex space-x-6 font-black text-slate-950 dark:text-slate-300">
             <Link href="/register" className="hover:text-brand-500">Register</Link>
             <Link href="/login" className="hover:text-brand-500">Sign In</Link>
             <Link href="/dashboard" className="hover:text-brand-500">Dashboard</Link>
